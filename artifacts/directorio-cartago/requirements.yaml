@@ -1,0 +1,19 @@
+packages:
+  "framer-motion": "Animations and transitions for premium feel"
+  "react-hook-form": "Form state management and validation"
+  "@hookform/resolvers": "Zod resolver for react-hook-form"
+  "date-fns": "Date formatting for subscriptions and reviews"
+  "clsx": "Utility for conditionally joining classNames"
+  "tailwind-merge": "Utility to merge tailwind classes safely"
+
+images:
+  - path: "artifacts/directorio-cartago/public/images/hero-bg.png"
+    description: "A stunning, premium abstract gradient mesh background in warm Colombian colors (deep coffee brown, rich terracotta, golden amber, vibrant orange) with soft elegant light leaks and a subtle, sophisticated grain texture. Modern, clean, and welcoming."
+    aspect_ratio: "16:9"
+  - path: "artifacts/directorio-cartago/public/images/default-business.png"
+    description: "A beautiful, minimalist 3D rendering of a modern storefront with a warm, inviting atmosphere. Soft lighting, warm color palette, clean architectural lines, suitable as a high-end placeholder image for a business directory."
+    aspect_ratio: "4:3"
+
+notes:
+  - Assuming customFetch in generated API uses localStorage 'auth_token' for Authorization header.
+  - Built comprehensive admin panel using Tabs to manage all administrative features efficiently.

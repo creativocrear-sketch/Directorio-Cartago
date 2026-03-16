@@ -1,0 +1,23 @@
+Código	Categoría	Requerimiento	Descripción
+RF01	Gestión de usuarios	Registro de usuarios	El sistema debe permitir el registro de nuevos usuarios mediante un formulario.
+RF02	Gestión de usuarios	Inicio y cierre de sesión	El sistema debe permitir a los usuarios iniciar y cerrar sesión de forma segura.
+RF03	Gestión de usuarios	Recuperación de contraseña	El sistema debe permitir recuperar la contraseña mediante correo electrónico.
+RF04	Gestión de usuarios	Edición de perfil	El sistema debe permitir a los usuarios editar su información de perfil.
+RF05	Gestión de negocios	Registro de negocios	El sistema debe permitir registrar negocios o establecimientos ubicados en Cartago, por parte del dueño y superadministrador
+RF06	Gestión de negocios	Edición de negocios	El sistema debe permitir editar la información de los negocios registrados, por parte del dueño o superadministrador
+RF07	Gestión de negocios	Eliminación de negocios	El sistema debe permitir eliminar negocios registrados, por parte del dueño y superadministrador
+RF08	Gestión de negocios	Información del negocio	El sistema debe permitir agregar información como nombre, dirección, teléfono, categoría, horario, descripción e imágenes, por parte del dueño y superadministrador
+RF09	Gestión de negocios	Gestión de categorías	El sistema debe permitir asignar categorías a los negocios (restaurantes, tiendas, servicios, etc.) , por parte del dueño o superadministrador
+RF10	Gestión de negocios	Calificaciones y reseñas	El sistema debe permitir a los usuarios calificar y escribir reseñas sobre los negocios. (segunda etapa)
+RF11	Búsqueda y visualización	Búsqueda por nombre	El sistema debe permitir buscar negocios por nombre. y otras opciones ej: whatsapp
+RF12	Búsqueda y visualización	Filtrado por categoría	El sistema debe permitir filtrar negocios por categoría.
+RF13	Búsqueda y visualización	Ubicación en mapa	El sistema debe mostrar la ubicación del negocio en un mapa interactivo de google maps, si y solo sí el negocio está registrado en google maps
+RF14	Búsqueda y visualización	Información básica gratuita	El sistema debe permitir visualizar información básica del negocio sin suscripción (foto, nombre, dirección física e Instagram).
+RF15	Sistema de suscripción	Suscripción	El sistema debe permitir a los usuarios suscribirse para acceder a información completa de los negocios.
+RF16	Sistema de suscripción	Pago de suscripción	El sistema debe permitir realizar pagos para adquirir una suscripción.
+RF17	Sistema de suscripción	Gestión de planes	El sistema debe permitir administrar diferentes planes de suscripción. Y de forma automatica habilitar y deshabilitar el servicio si el cliente ha pagado o no
+RF18	Sistema de suscripción	Información premium	El sistema debe permitir visualizar información premium de los negocios (información básica + Facebook, WhatsApp, URL web, enlace a mapa y teléfono).
+RF19	Gestión administrativa	Administración de usuarios	El sistema debe permitir al administrador gestionar usuarios.
+RF20	Gestión administrativa	Aprobación de negocios	El sistema debe permitir aprobar o rechazar negocios registrados antes de publicarlos.
+RF21	Gestión administrativa	Estadísticas del sistema	El sistema debe permitir visualizar estadísticas de uso del directorio.
+RF22	Gestión administrativa	Gestión de suscripciones	El sistema debe permitir administrar planes de suscripción y pagos realizados.
