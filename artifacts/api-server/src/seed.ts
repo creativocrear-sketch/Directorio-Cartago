@@ -9,6 +9,46 @@ import {
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
+const BUSINESS_IMAGES: Record<string, string> = {
+  "Restaurante El Buen Sabor":        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&auto=format&fit=crop&q=80",
+  "Tech Store Cartago":               "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80",
+  "La Terraza Paisa":                 "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
+  "Almacén El Progreso":              "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&auto=format&fit=crop&q=80",
+  "Clínica Odontológica Sonría":      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80",
+  "García & Asociados Abogados":      "https://images.unsplash.com/photo-1575505586569-646b2ca898fc?w=800&auto=format&fit=crop&q=80",
+  "Centro de Idiomas Lingua":         "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&auto=format&fit=crop&q=80",
+  "Billar El Rincón del Valle":       "https://images.unsplash.com/photo-1571993143257-40cdac0f9c06?w=800&auto=format&fit=crop&q=80",
+  "Salón Glamour":                    "https://images.unsplash.com/photo-1560066984-138daaa0a94c?w=800&auto=format&fit=crop&q=80",
+  "Mudanzas Rápido Valle":            "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80",
+  "Hotel Boutique El Marqués":        "https://images.unsplash.com/photo-1551882547-ff40c4a49ce6?w=800&auto=format&fit=crop&q=80",
+  "Farmacia Salud Total":             "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=800&auto=format&fit=crop&q=80",
+  "Ferretería Los Andes":             "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&auto=format&fit=crop&q=80",
+  "Lavandería Express":               "https://images.unsplash.com/photo-1517677208171-0bc6132b7f2c?w=800&auto=format&fit=crop&q=80",
+  "Academia de Música El Pentagrama": "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&auto=format&fit=crop&q=80",
+  "Escape Room Cartago Adventures":   "https://images.unsplash.com/photo-1628155930542-3c7a64e2aef1?w=800&auto=format&fit=crop&q=80",
+  "Soluciones IT del Valle":          "https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=800&auto=format&fit=crop&q=80",
+  "Spa & Masajes Zen":                "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&auto=format&fit=crop&q=80",
+  "ServitaxiCartago":                 "https://images.unsplash.com/photo-1611557622261-8d9be25f3d43?w=800&auto=format&fit=crop&q=80",
+  "Hostal Vida Verde":                "https://images.unsplash.com/photo-1469796466635-455ede028aca?w=800&auto=format&fit=crop&q=80",
+  "Pizza Don Marco":                  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
+};
+
+export async function updateBusinessImages() {
+  const allBusinesses = await db.select().from(businessesTable);
+  let updated = 0;
+  for (const biz of allBusinesses) {
+    const newUrl = BUSINESS_IMAGES[biz.name];
+    if (!newUrl) continue;
+    await db
+      .update(businessImagesTable)
+      .set({ url: newUrl })
+      .where(eq(businessImagesTable.businessId, biz.id));
+    updated++;
+  }
+  console.log(`[seed] Imágenes actualizadas: ${updated}`);
+  return { updated };
+}
+
 const EXPECTED_BUSINESSES = 21;
 
 export async function seedIfEmpty(force = false) {
@@ -156,7 +196,7 @@ export async function seedIfEmpty(force = false) {
 
       await db.insert(businessImagesTable).values({
         businessId: b.id,
-        url: biz.image,
+        url: BUSINESS_IMAGES[biz.name] || biz.image,
         isPrimary: true,
       });
 
