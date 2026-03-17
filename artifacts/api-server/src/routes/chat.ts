@@ -16,6 +16,7 @@ router.post("/", async (req, res) => {
         address: businessesTable.address,
         phone: businessesTable.phone,
         whatsapp: businessesTable.whatsapp,
+        instagram: businessesTable.instagram,
         schedule: businessesTable.schedule,
         categoryName: categoriesTable.name,
       })
@@ -62,8 +63,7 @@ router.post("/", async (req, res) => {
       respuesta += `🏪 ${e.name}\n`;
       respuesta += `📂 ${e.categoryName || "Sin categoría"}\n`;
       respuesta += `📍 ${e.address}\n`;
-      respuesta += `📞 ${e.phone || "Sin teléfono"}\n`;
-      if (e.whatsapp) respuesta += `💬 ${e.whatsapp}\n`;
+      if (e.instagram) respuesta += `📸 ${e.instagram}\n`;
       if (e.schedule) respuesta += `🕐 ${e.schedule}\n`;
       respuesta += "\n";
     });
