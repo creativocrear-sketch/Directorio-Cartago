@@ -1,49 +1,39 @@
 modules = ["nodejs-24", "postgresql-16"]
-
 [[artifacts]]
 id = "artifacts/api-server"
-
 [[artifacts]]
 id = "artifacts/mockup-sandbox"
-
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
-
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]
 env = { "CI" = "true" }
-
 [workflows]
 runButton = "Project"
-
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
-
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
-
 [nix]
 channel = "stable-25_05"
 
 [[ports]]
 localPort = 8080
+externalPort = 3000
 
 [[ports]]
 localPort = 25788
 externalPort = 80
-
 [[workflows.workflow]]
 name = "Project"
 mode = "parallel"
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export PORT=8080 && cd artifacts/api-server && pnpm run dev"
 waitForPort = 8080
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export PORT=25788 BASE_PATH=/ && cd artifacts/directorio-cartago && pnpm run dev"

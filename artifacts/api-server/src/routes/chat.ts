@@ -5,7 +5,7 @@ import {
   categoriesTable,
   businessImagesTable,
 } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 const router = Router();
 
@@ -72,21 +72,18 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    // ✅ Obtener imágenes de los negocios encontrados
+    // ✅ Obtener imágenes sin filtrar isPrimary
     const ids = resultados.slice(0, 3).map((e) => e.id);
     const imagenes = await db
       .select()
       .from(businessImagesTable)
-      .where(
-        and(
-          inArray(businessImagesTable.businessId, ids),
-          eq(businessImagesTable.isPrimary, 1),
-        ),
-      );
+      .where(inArray(businessImagesTable.businessId, ids));
 
     const imageMap: Record<number, string> = {};
     imagenes.forEach((img) => {
-      imageMap[img.businessId] = img.url;
+      if (!imageMap[img.businessId]) {
+        imageMap[img.businessId] = img.url;
+      }
     });
 
     const results = resultados.slice(0, 3).map((e) => ({
