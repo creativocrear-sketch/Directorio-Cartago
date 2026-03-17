@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, usersTable, businessesTable, categoriesTable, subscriptionsTable, subscriptionPlansTable } from "@workspace/db";
 import { eq, count, and, gt, sql } from "drizzle-orm";
 import { requireAdmin, type AuthRequest } from "../middlewares/auth";
+import { seedIfEmpty } from "../seed";
 import {
   AdminGetUsersQueryParams,
   AdminUpdateUserParams,
@@ -191,6 +192,15 @@ router.put("/admin/subscription-plans/:id", requireAdmin, async (req: AuthReques
   }
 
   res.json(plan);
+});
+
+router.post("/admin/seed", requireAdmin, async (req: AuthRequest, res): Promise<void> => {
+  try {
+    const result = await seedIfEmpty(true);
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: String(err) });
+  }
 });
 
 export default router;
