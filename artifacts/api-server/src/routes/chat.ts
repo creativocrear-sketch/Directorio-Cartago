@@ -4,8 +4,16 @@ import { eq } from "drizzle-orm";
 
 const router = Router();
 
+// ✅ Elimina tildes y normaliza texto
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 router.post("/", async (req, res) => {
-  const mensaje = (req.body.message || "").toLowerCase().trim();
+  const mensaje = normalizar(req.body.message || "").trim();
 
   try {
     const empresas = await db
@@ -14,8 +22,6 @@ router.post("/", async (req, res) => {
         name: businessesTable.name,
         description: businessesTable.description,
         address: businessesTable.address,
-        phone: businessesTable.phone,
-        whatsapp: businessesTable.whatsapp,
         instagram: businessesTable.instagram,
         schedule: businessesTable.schedule,
         categoryName: categoriesTable.name,
@@ -44,17 +50,19 @@ router.post("/", async (req, res) => {
 
     const resultados = empresas.filter(
       (e) =>
-        (e.name || "").toLowerCase().includes(mensaje) ||
-        (e.name || "").toLowerCase().includes(busqueda) ||
-        (e.description || "").toLowerCase().includes(mensaje) ||
-        (e.description || "").toLowerCase().includes(busqueda) ||
-        (e.address || "").toLowerCase().includes(mensaje) ||
-        (e.categoryName || "").toLowerCase().includes(mensaje) ||
-        (e.categoryName || "").toLowerCase().includes(busqueda),
+        normalizar(e.name || "").includes(mensaje) ||
+        normalizar(e.name || "").includes(busqueda) ||
+        normalizar(e.description || "").includes(mensaje) ||
+        normalizar(e.description || "").includes(busqueda) ||
+        normalizar(e.address || "").includes(mensaje) ||
+        normalizar(e.categoryName || "").includes(mensaje) ||
+        normalizar(e.categoryName || "").includes(busqueda),
     );
 
     if (resultados.length === 0) {
-      res.json({ reply: `No encontré resultados para "${mensaje}" 😢` });
+      res.json({
+        reply: `No encontré resultados para "${req.body.message}" 😢`,
+      });
       return;
     }
 
