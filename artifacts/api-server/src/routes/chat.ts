@@ -1,10 +1,14 @@
 import { Router } from "express";
-import { db, businessesTable, categoriesTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import {
+  db,
+  businessesTable,
+  categoriesTable,
+  businessImagesTable,
+} from "@workspace/db";
+import { eq, and, inArray } from "drizzle-orm";
 
 const router = Router();
 
-// ✅ Elimina tildes y normaliza texto
 function normalizar(texto: string): string {
   return texto
     .toLowerCase()
@@ -34,7 +38,7 @@ router.post("/", async (req, res) => {
       .where(eq(businessesTable.status, "approved"));
 
     if (!empresas.length) {
-      res.json({ reply: "No hay negocios disponibles 😢" });
+      res.json({ reply: "No hay negocios disponibles 😢", results: [] });
       return;
     }
 
@@ -42,6 +46,7 @@ router.post("/", async (req, res) => {
       res.json({
         reply:
           "¿En qué te puedo ayudar? Escribe el nombre de un negocio o categoría 🔍",
+        results: [],
       });
       return;
     }
@@ -62,24 +67,44 @@ router.post("/", async (req, res) => {
     if (resultados.length === 0) {
       res.json({
         reply: `No encontré resultados para "${req.body.message}" 😢`,
+        results: [],
       });
       return;
     }
 
-    let respuesta = `🔎 Encontré ${resultados.length} resultado(s):\n\n`;
-    resultados.slice(0, 3).forEach((e) => {
-      respuesta += `🏪 ${e.name}\n`;
-      respuesta += `📂 ${e.categoryName || "Sin categoría"}\n`;
-      respuesta += `📍 ${e.address}\n`;
-      if (e.instagram) respuesta += `📸 ${e.instagram}\n`;
-      if (e.schedule) respuesta += `🕐 ${e.schedule}\n`;
-      respuesta += "\n";
+    // ✅ Obtener imágenes de los negocios encontrados
+    const ids = resultados.slice(0, 3).map((e) => e.id);
+    const imagenes = await db
+      .select()
+      .from(businessImagesTable)
+      .where(
+        and(
+          inArray(businessImagesTable.businessId, ids),
+          eq(businessImagesTable.isPrimary, 1),
+        ),
+      );
+
+    const imageMap: Record<number, string> = {};
+    imagenes.forEach((img) => {
+      imageMap[img.businessId] = img.url;
     });
 
-    res.json({ reply: respuesta });
+    const results = resultados.slice(0, 3).map((e) => ({
+      name: e.name,
+      category: e.categoryName || "Sin categoría",
+      address: e.address,
+      instagram: e.instagram,
+      schedule: e.schedule,
+      image: imageMap[e.id] || null,
+    }));
+
+    res.json({
+      reply: `🔎 Encontré ${resultados.length} resultado(s):`,
+      results,
+    });
   } catch (error: any) {
     console.error("Chat error:", error.message);
-    res.status(500).json({ reply: "Error: " + error.message });
+    res.status(500).json({ reply: "Error: " + error.message, results: [] });
   }
 });
 
