@@ -28,16 +28,16 @@ function Router() {
       <Route path="/businesses/new" component={BusinessForm} />
       <Route path="/businesses/:id" component={BusinessDetail} />
       <Route path="/businesses/:id/edit" component={BusinessForm} />
-      
+
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/profile" component={Profile} />
       <Route path="/my-businesses" component={MyBusinesses} />
-      
+
       <Route path="/admin" component={AdminPanel} />
       <Route path="/plans" component={Plans} />
       <Route path="/privacidad" component={Privacy} />
-      
+
       <Route component={NotFound} />
     </Switch>
   );

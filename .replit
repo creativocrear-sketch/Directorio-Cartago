@@ -27,3 +27,24 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[[ports]]
+localPort = 8080
+
+[[ports]]
+localPort = 25788
+externalPort = 80
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PORT=8080 && cd artifacts/api-server && pnpm run dev"
+waitForPort = 8080
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PORT=25788 BASE_PATH=/ && cd artifacts/directorio-cartago && pnpm run dev"
+waitForPort = 25788
