@@ -48,7 +48,7 @@ export default function Businesses() {
               <Input 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por nombre, palabras clave..."
+                placeholder="Buscar por nombre, categoría..."
                 className="w-full h-12 pl-10 bg-white/50 border-border"
               />
             </div>

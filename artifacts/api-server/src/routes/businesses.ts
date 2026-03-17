@@ -7,7 +7,7 @@ import {
   usersTable,
   subscriptionsTable,
 } from "@workspace/db";
-import { eq, and, ilike, count, sql, gt, inArray } from "drizzle-orm";
+import { eq, and, ilike, or, count, sql, gt, inArray } from "drizzle-orm";
 import { requireAuth, requireAdmin, optionalAuth, type AuthRequest } from "../middlewares/auth";
 import {
   GetBusinessesQueryParams,
@@ -107,7 +107,12 @@ router.get("/businesses", optionalAuth, async (req: AuthRequest, res): Promise<v
   }
 
   if (search) {
-    conditions.push(ilike(businessesTable.name, `%${search}%`));
+    conditions.push(
+      or(
+        ilike(businessesTable.name, `%${search}%`),
+        ilike(categoriesTable.name, `%${search}%`)
+      )!
+    );
   }
 
   if (categoryId) {
@@ -121,6 +126,7 @@ router.get("/businesses", optionalAuth, async (req: AuthRequest, res): Promise<v
   const [totalResult] = await db
     .select({ count: count() })
     .from(businessesTable)
+    .leftJoin(categoriesTable, eq(businessesTable.categoryId, categoriesTable.id))
     .where(whereClause);
 
   const total = Number(totalResult.count);
