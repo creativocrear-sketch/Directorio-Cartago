@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "corepack enable && pnpm install --frozen-lockfile",
-  "buildCommand": "corepack enable && pnpm run vercel-build",
+  "buildCommand": "corepack enable && corepack pnpm --filter @workspace/directorio-cartago run build",
   "outputDirectory": "dist"
 }
