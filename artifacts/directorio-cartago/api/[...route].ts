@@ -19,5 +19,5 @@ export const config = {
 
 export default async function handler(req: any, res: any) {
   await ensureSeeded();
-  return app(req, res);
+  return app.handle(req, res);
 }
