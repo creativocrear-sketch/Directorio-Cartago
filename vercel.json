@@ -3,5 +3,5 @@
   "framework": "vite",
   "installCommand": "corepack enable && pnpm install --frozen-lockfile",
   "buildCommand": "corepack enable && pnpm --filter @workspace/directorio-cartago run build",
-  "outputDirectory": "artifacts/directorio-cartago/dist/public"
+  "outputDirectory": "artifacts/directorio-cartago/dist"
 }
