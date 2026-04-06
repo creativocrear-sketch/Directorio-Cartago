@@ -6,8 +6,9 @@ import {
   businessesTable,
   businessImagesTable,
   subscriptionPlansTable,
+  subscriptionsTable,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 
 const BUSINESS_IMAGES: Record<string, string> = {
   "Restaurante El Buen Sabor":        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&auto=format&fit=crop&q=80",
@@ -60,6 +61,9 @@ export async function updateBusinessImages() {
 
 const EXPECTED_BUSINESSES = 30;
 
+const DEMO_PREMIUM_EMAIL = "premium@directoriocartago.co";
+const DEMO_PREMIUM_PASSWORD = "premium123";
+
 export async function seedIfEmpty(force = false) {
   const existingBusinesses = await db.select().from(businessesTable);
   const existingCategories = await db.select().from(categoriesTable);
@@ -110,6 +114,9 @@ export async function seedIfEmpty(force = false) {
     console.log("[seed] Planes creados");
   }
 
+  const allPlans = await db.select().from(subscriptionPlansTable);
+  const premiumMonthlyPlan = allPlans.find((plan) => plan.name === "Premium Mensual");
+
   // Users
   let ownerId: number;
   const existingOwner = await db.select().from(usersTable).where(eq(usersTable.email, "juan@ejemplo.co"));
@@ -134,6 +141,65 @@ export async function seedIfEmpty(force = false) {
   } else {
     ownerId = existingOwner[0].id;
     console.log("[seed] Usuario existente, ownerId:", ownerId);
+  }
+
+  const existingPremiumDemo = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, DEMO_PREMIUM_EMAIL));
+  let premiumDemoId: number;
+  if (existingPremiumDemo.length === 0) {
+    const premiumHash = await bcrypt.hash(DEMO_PREMIUM_PASSWORD, 12);
+    const [premiumUser] = await db
+      .insert(usersTable)
+      .values({
+        name: "Usuario Premium Demo",
+        email: DEMO_PREMIUM_EMAIL,
+        passwordHash: premiumHash,
+        role: "business_owner",
+        phone: "3005550001",
+      })
+      .returning();
+    premiumDemoId = premiumUser.id;
+    console.log("[seed] Usuario premium demo creado:", premiumDemoId);
+  } else {
+    premiumDemoId = existingPremiumDemo[0].id;
+    console.log("[seed] Usuario premium demo existente:", premiumDemoId);
+  }
+
+  if (premiumMonthlyPlan) {
+    const now = new Date();
+    const [activePremium] = await db
+      .select()
+      .from(subscriptionsTable)
+      .where(
+        and(
+          eq(subscriptionsTable.userId, premiumDemoId),
+          eq(subscriptionsTable.isActive, true),
+          gt(subscriptionsTable.endDate, now),
+        ),
+      )
+      .limit(1);
+
+    if (!activePremium) {
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + premiumMonthlyPlan.durationDays);
+
+      await db
+        .update(subscriptionsTable)
+        .set({ isActive: false })
+        .where(eq(subscriptionsTable.userId, premiumDemoId));
+
+      await db.insert(subscriptionsTable).values({
+        userId: premiumDemoId,
+        planId: premiumMonthlyPlan.id,
+        startDate: now,
+        endDate,
+        isActive: true,
+        paymentReference: "SEED-PREMIUM-DEMO",
+      });
+      console.log("[seed] Suscripcion Premium demo creada");
+    }
   }
 
   // Businesses
