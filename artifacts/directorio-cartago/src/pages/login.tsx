@@ -4,7 +4,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Layout } from "@/components/layout";
-import { useAuth } from "@/components/auth-provider";
+import {
+  DEMO_ADMIN_USER,
+  DEMO_PREMIUM_USER,
+  useAuth,
+} from "@/components/auth-provider";
 import { useLogin } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +58,34 @@ export default function Login() {
   });
 
   const onSubmit = (data: LoginFormValues) => {
+    const normalizedEmail = data.email.trim().toLowerCase();
+
+    if (
+      normalizedEmail === DEMO_ADMIN_USER.email &&
+      data.password === "admin123"
+    ) {
+      setAuthContext(`demo-token:${DEMO_ADMIN_USER.email}`, DEMO_ADMIN_USER);
+      toast({
+        title: "Sesion demo iniciada",
+        description: "Entraste con el perfil administrador de demostracion.",
+      });
+      setLocation("/admin");
+      return;
+    }
+
+    if (
+      normalizedEmail === DEMO_PREMIUM_USER.email &&
+      data.password === "premium123"
+    ) {
+      setAuthContext(`demo-token:${DEMO_PREMIUM_USER.email}`, DEMO_PREMIUM_USER);
+      toast({
+        title: "Sesion demo iniciada",
+        description: "Entraste con el perfil Premium de demostracion.",
+      });
+      setLocation("/my-businesses");
+      return;
+    }
+
     loginMutation({ data });
   };
 

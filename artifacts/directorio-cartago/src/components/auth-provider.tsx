@@ -1,6 +1,29 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useGetMe, User } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+
+const AUTH_TOKEN_KEY = "auth_token";
+const DEMO_USER_KEY = "demo_user";
+
+export const DEMO_ADMIN_USER: User = {
+  id: 900001,
+  name: "Administrador Demo",
+  email: "admin@directoriocartago.co",
+  role: "admin",
+  phone: null,
+  createdAt: "2026-04-06T12:00:00.000Z",
+  hasActiveSubscription: false,
+};
+
+export const DEMO_PREMIUM_USER: User = {
+  id: 900002,
+  name: "Usuario Premium Demo",
+  email: "premium@directoriocartago.co",
+  role: "business_owner",
+  phone: "3005550001",
+  createdAt: "2026-04-06T12:00:00.000Z",
+  hasActiveSubscription: true,
+};
 
 interface AuthContextType {
   user: User | null;
@@ -13,46 +36,71 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function parseDemoUser() {
+  try {
+    const raw = localStorage.getItem(DEMO_USER_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem("auth_token"));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(AUTH_TOKEN_KEY));
+  const [demoUser, setDemoUser] = useState<User | null>(() => parseDemoUser());
   const queryClient = useQueryClient();
+  const isDemoSession = Boolean(token?.startsWith("demo-token:"));
 
-  // Custom fetch in orval should ideally intercept and use this token,
-  // but if it doesn't automatically, we rely on standard credentials or we'd need to patch customFetch.
-  // Assuming customFetch uses localStorage.getItem('auth_token').
-
-  const { data: user, isLoading, isError } = useGetMe({
+  const { data: apiUser, isLoading, isError } = useGetMe({
     query: {
-      enabled: !!token,
+      enabled: !!token && !isDemoSession,
       retry: false,
-    }
+    },
   });
 
   useEffect(() => {
-    if (isError) {
-      // Token invalid or expired
+    if (isError && !isDemoSession) {
       logout();
     }
-  }, [isError]);
+  }, [isDemoSession, isError]);
 
   const login = (newToken: string, newUser: User) => {
-    localStorage.setItem("auth_token", newToken);
+    localStorage.setItem(AUTH_TOKEN_KEY, newToken);
     setToken(newToken);
+
+    if (newToken.startsWith("demo-token:")) {
+      localStorage.setItem(DEMO_USER_KEY, JSON.stringify(newUser));
+      setDemoUser(newUser);
+      queryClient.setQueryData([`/api/auth/me`], newUser);
+      return;
+    }
+
+    localStorage.removeItem(DEMO_USER_KEY);
+    setDemoUser(null);
     queryClient.setQueryData([`/api/auth/me`], newUser);
   };
 
   const logout = () => {
-    localStorage.removeItem("auth_token");
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(DEMO_USER_KEY);
     setToken(null);
+    setDemoUser(null);
     queryClient.setQueryData([`/api/auth/me`], null);
     queryClient.clear();
   };
 
+  const user = useMemo(() => {
+    if (isDemoSession) {
+      return demoUser;
+    }
+    return apiUser || null;
+  }, [apiUser, demoUser, isDemoSession]);
+
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
-        isLoading: !!token && isLoading,
+        user,
+        isLoading: !!token && !isDemoSession && isLoading,
         isAuthenticated: !!user,
         token,
         login,
