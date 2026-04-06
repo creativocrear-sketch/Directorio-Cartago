@@ -23,8 +23,12 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { login: setAuthContext } = useAuth();
   const { toast } = useToast();
-  
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
@@ -32,17 +36,20 @@ export default function Login() {
     mutation: {
       onSuccess: (data) => {
         setAuthContext(data.token, data.user);
-        toast({ title: "¡Bienvenido de nuevo!", description: "Has iniciado sesión correctamente." });
+        toast({
+          title: "¡Bienvenido de nuevo!",
+          description: "Has iniciado sesión correctamente.",
+        });
         setLocation("/");
       },
       onError: (error) => {
-        toast({ 
-          title: "Error al iniciar sesión", 
-          description: error.response?.data?.message || "Credenciales incorrectas", 
-          variant: "destructive" 
+        toast({
+          title: "Error al iniciar sesión",
+          description: error.response?.data?.message || "Credenciales incorrectas",
+          variant: "destructive",
         });
-      }
-    }
+      },
+    },
   });
 
   const onSubmit = (data: LoginFormValues) => {
@@ -53,48 +60,64 @@ export default function Login() {
     <Layout>
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-muted/30">
         <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl border border-border/50 relative overflow-hidden">
-          {/* Decorative blur */}
           <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 blur-3xl rounded-full pointer-events-none" />
-          
+
           <div className="flex flex-col items-center mb-8 relative z-10">
             <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
               <MapPin className="w-6 h-6" />
             </div>
-            <h1 className="text-3xl font-display font-bold text-foreground">Hola de nuevo</h1>
-            <p className="text-muted-foreground mt-2">Ingresa a tu cuenta para continuar</p>
+            <h1 className="text-3xl font-display font-bold text-foreground">
+              Hola de nuevo
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Ingresa a tu cuenta para continuar
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 relative z-10">
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                {...register("email")} 
+              <Input
+                id="email"
+                type="email"
+                {...register("email")}
                 className="rounded-xl h-12 bg-background focus:bg-white"
                 placeholder="tu@correo.com"
               />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Contraseña</Label>
-                <Link href="/forgot-password" className="text-xs text-primary hover:underline font-medium">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-primary hover:underline font-medium"
+                >
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                {...register("password")} 
+              <Input
+                id="password"
+                type="password"
+                {...register("password")}
                 className="rounded-xl h-12 bg-background focus:bg-white"
-                placeholder="••••••••"
+                placeholder="********"
               />
-              {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
-            <Button type="submit" disabled={isPending} className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20"
+            >
               {isPending ? "Ingresando..." : "Ingresar"}
             </Button>
           </form>

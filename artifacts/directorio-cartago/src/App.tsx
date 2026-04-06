@@ -11,6 +11,7 @@ import Businesses from "./pages/businesses";
 import BusinessDetail from "./pages/business-detail";
 import Login from "./pages/login";
 import Register from "./pages/register";
+import ForgotPassword from "./pages/forgot-password";
 import Profile from "./pages/profile";
 import MyBusinesses from "./pages/my-businesses";
 import BusinessForm from "./pages/business-form";
@@ -31,6 +32,7 @@ function Router() {
 
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/profile" component={Profile} />
       <Route path="/my-businesses" component={MyBusinesses} />
 

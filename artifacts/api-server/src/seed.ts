@@ -31,6 +31,15 @@ const BUSINESS_IMAGES: Record<string, string> = {
   "ServitaxiCartago":                 "https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&auto=format&fit=crop&q=80",
   "Hostal Vida Verde":                "https://images.unsplash.com/photo-1469796466635-455ede028aca?w=800&auto=format&fit=crop&q=80",
   "Pizza Don Marco":                  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
+  "Café del Parque":                  "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&auto=format&fit=crop&q=80",
+  "Óptica Visión Central":            "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&auto=format&fit=crop&q=80",
+  "Papelería Prisma":                 "https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&auto=format&fit=crop&q=80",
+  "Nube Creativa Studio":             "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&auto=format&fit=crop&q=80",
+  "Fitness Center Cartago":           "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&auto=format&fit=crop&q=80",
+  "Casa Coral Eventos":               "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
+  "Hotel Santa Mónica Plaza":         "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop&q=80",
+  "Ruta Express Mensajería":          "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=800&auto=format&fit=crop&q=80",
+  "Instituto Saber Digital":          "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop&q=80",
 };
 
 export async function updateBusinessImages() {
@@ -49,13 +58,13 @@ export async function updateBusinessImages() {
   return { updated };
 }
 
-const EXPECTED_BUSINESSES = 21;
+const EXPECTED_BUSINESSES = 30;
 
 export async function seedIfEmpty(force = false) {
-  const existingBusinesses = await db.select().from(businessesTable).limit(1);
-  const existingCategories = await db.select().from(categoriesTable).limit(1);
+  const existingBusinesses = await db.select().from(businessesTable);
+  const existingCategories = await db.select().from(categoriesTable);
 
-  if (!force && existingBusinesses.length >= 1 && existingCategories.length >= 1) {
+  if (!force && existingBusinesses.length >= EXPECTED_BUSINESSES && existingCategories.length >= 1) {
     console.log("[seed] Datos ya existen, omitiendo seed.");
     return { skipped: true };
   }
@@ -139,6 +148,16 @@ export async function seedIfEmpty(force = false) {
   const existingNames = new Set(existingBiz.map(b => b.name));
 
   const businessData = [
+    { name: "Café del Parque", description: "Café de especialidad con brunch, panadería artesanal y espacio para reuniones tranquilas cerca del parque principal.", address: "Carrera 5 #9-18, Centro, Cartago", phone: "3174408891", whatsapp: "573174408891", instagram: "@cafedelparquecartago", facebook: "CafeDelParqueCartago", website: "cafedelparque.co", googleMapsUrl: "https://maps.google.com/?q=Cafe+del+Parque+Cartago", schedule: "Lunes a sábado\n7:00 a. m. - 8:00 p. m.", catName: "Restaurantes", image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600" },
+    { name: "Óptica Visión Central", description: "Exámenes visuales, monturas modernas y lentes formulados con entrega rápida para toda la familia.", address: "Calle 11 #6-22, Cartago", phone: "3159042210", whatsapp: "573159042210", instagram: "@visioncentralcartago", facebook: "VisionCentralCartago", website: "visioncentralcartago.com", googleMapsUrl: null, schedule: "Lunes a viernes\n8:00 a. m. - 6:30 p. m.\nSábados 8:00 a. m. - 2:00 p. m.", catName: "Salud", image: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600" },
+    { name: "Papelería Prisma", description: "Útiles escolares, impresiones, regalos y soluciones rápidas para estudiantes, docentes y oficinas.", address: "Carrera 4 #10-41, Cartago", phone: "3005123478", whatsapp: "573005123478", instagram: "@papeleriaprisma", facebook: null, website: null, googleMapsUrl: null, schedule: "Lunes a sábado\n8:00 a. m. - 7:00 p. m.", catName: "Tiendas", image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600" },
+    { name: "Nube Creativa Studio", description: "Diseño gráfico, branding, fotografía de producto y manejo de redes para negocios de Cartago y el norte del Valle.", address: "Avenida del Río #7-60, Oficina 201, Cartago", phone: "3207415520", whatsapp: "573207415520", instagram: "@nubecreativastudio", facebook: "NubeCreativaStudio", website: "nubecreativa.studio", googleMapsUrl: null, schedule: "Lunes a viernes\n9:00 a. m. - 6:00 p. m.", catName: "Servicios", image: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=600" },
+    { name: "Fitness Center Cartago", description: "Gimnasio con entrenamiento funcional, pesas, clases guiadas y planes personalizados para todos los niveles.", address: "Calle 13 #7-54, Cartago", phone: "3182231445", whatsapp: "573182231445", instagram: "@fitnesscartago", facebook: null, website: null, googleMapsUrl: null, schedule: "Lunes a viernes\n5:00 a. m. - 9:00 p. m.\nSábados 7:00 a. m. - 2:00 p. m.", catName: "Salud", image: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600" },
+    { name: "Casa Coral Eventos", description: "Salón para celebraciones, eventos corporativos y reuniones familiares con decoración, sonido y catering.", address: "Vía Ansermanuevo km 2, Cartago", phone: "3128805521", whatsapp: "573128805521", instagram: "@casacoraleventos", facebook: "CasaCoralEventos", website: "casacoral.co", googleMapsUrl: "https://maps.google.com/?q=Casa+Coral+Eventos+Cartago", schedule: "Atención por reservas\nTodos los días 9:00 a. m. - 6:00 p. m.", catName: "Entretenimiento", image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600" },
+    { name: "Hotel Santa Mónica Plaza", description: "Alojamiento ejecutivo con parqueadero, desayuno, Wi-Fi de alta velocidad y salones para reuniones.", address: "Calle 12 #5-33, Cartago", phone: "3116637822", whatsapp: "573116637822", instagram: "@hotelsantamonicaplaza", facebook: null, website: "hotelsantamonicaplaza.com", googleMapsUrl: "https://maps.google.com/?q=Hotel+Santa+Monica+Plaza+Cartago", schedule: "Recepción 24 horas", catName: "Hoteles", image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600" },
+    { name: "Ruta Express Mensajería", description: "Mensajería urbana, domicilios empresariales y entregas el mismo día en Cartago y municipios cercanos.", address: "Carrera 3 #14-08, Cartago", phone: "3008844201", whatsapp: "573008844201", instagram: "@rutaexpresscartago", facebook: null, website: null, googleMapsUrl: null, schedule: "Lunes a sábado\n7:30 a. m. - 6:30 p. m.", catName: "Transporte", image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600" },
+    { name: "Instituto Saber Digital", description: "Cursos cortos en herramientas digitales, ofimática, marketing y habilidades laborales para jóvenes y adultos.", address: "Carrera 6 #11-72, Cartago", phone: "3162209074", whatsapp: "573162209074", instagram: "@saberdigitalcartago", facebook: "InstitutoSaberDigital", website: "saberdigital.edu.co", googleMapsUrl: null, schedule: "Lunes a viernes\n8:00 a. m. - 8:00 p. m.", catName: "EducaciÃ³n", image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600" },
+    { name: "Mercado Verde La 14", description: "Frutas, verduras, productos saludables y mercado fresco con servicio a domicilio en varios sectores de Cartago.", address: "Calle 14 #4-17, Cartago", phone: "3215019820", whatsapp: "573215019820", instagram: "@mercadoverdelacatorce", facebook: null, website: null, googleMapsUrl: null, schedule: "Lunes a domingo\n7:00 a. m. - 7:30 p. m.", catName: "Tiendas", image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600" },
     { name: "Restaurante El Buen Sabor", description: "El mejor restaurante de comida típica colombiana en Cartago. Especialidad en bandeja paisa y sancocho.", address: "Carrera 5 #10-23, Centro, Cartago, Valle del Cauca", phone: "3001234568", whatsapp: "573001234568", instagram: "@buensaborcartago", facebook: null, website: null, googleMapsUrl: null, catName: "Restaurantes", image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600" },
     { name: "Tech Store Cartago", description: "Tienda especializada en tecnología, celulares, laptops y accesorios. Reparación de equipos.", address: "Calle 12 #4-45, Cartago, Valle del Cauca", phone: null, whatsapp: null, instagram: "@techstorecartago", facebook: null, website: null, googleMapsUrl: null, catName: "Tecnología", image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600" },
     { name: "La Terraza Paisa", description: "Auténtica comida paisa con vista panorámica. Especialidad en bandeja paisa, chicharrón y mazamorra.", address: "Avenida 4 Norte #15-30, Cartago", phone: "3102345670", whatsapp: "573102345670", instagram: "@laterrazapaisa", facebook: "La Terraza Paisa", website: "https://laterrazapaisa.com", googleMapsUrl: "https://maps.google.com/?q=Cartago+Valle", catName: "Restaurantes", image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600" },
@@ -188,6 +207,7 @@ export async function seedIfEmpty(force = false) {
           facebook: biz.facebook ?? null,
           website: biz.website ?? null,
           googleMapsUrl: biz.googleMapsUrl ?? null,
+          schedule: biz.schedule ?? null,
           categoryId: catId,
           ownerId,
           status: "approved",

@@ -18,7 +18,7 @@ const registerSchema = z.object({
   email: z.string().email("Correo inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
   phone: z.string().optional(),
-  role: z.enum(["visitor", "business_owner"])
+  role: z.enum(["visitor", "business_owner"]),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -27,27 +27,36 @@ export default function Register() {
   const [, setLocation] = useLocation();
   const { login: setAuthContext } = useAuth();
   const { toast } = useToast();
-  
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<RegisterFormValues>({
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { role: "visitor" }
+    defaultValues: { role: "visitor" },
   });
 
   const { mutate: registerMutation, isPending } = useRegister({
     mutation: {
       onSuccess: (data) => {
         setAuthContext(data.token, data.user);
-        toast({ title: "¡Cuenta creada!", description: "Bienvenido a Directorio Cartago." });
+        toast({
+          title: "¡Cuenta creada!",
+          description: "Bienvenido a Directorio Cartago.",
+        });
         setLocation(data.user.role === "business_owner" ? "/my-businesses" : "/");
       },
       onError: (error) => {
-        toast({ 
-          title: "Error de registro", 
-          description: error.response?.data?.message || "Hubo un problema", 
-          variant: "destructive" 
+        toast({
+          title: "Error de registro",
+          description: error.response?.data?.message || "Hubo un problema",
+          variant: "destructive",
         });
-      }
-    }
+      },
+    },
   });
 
   const onSubmit = (data: RegisterFormValues) => {
@@ -60,22 +69,26 @@ export default function Register() {
     <Layout>
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-muted/30 py-12">
         <div className="w-full max-w-xl bg-card rounded-3xl p-8 shadow-xl border border-border/50 relative overflow-hidden">
-          
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 rounded-xl bg-secondary text-secondary-foreground flex items-center justify-center mb-4 shadow-lg shadow-secondary/20">
               <UserPlus className="w-6 h-6" />
             </div>
-            <h1 className="text-3xl font-display font-bold text-foreground">Crear Cuenta</h1>
-            <p className="text-muted-foreground mt-2">Únete a la red más grande de Cartago</p>
+            <h1 className="text-3xl font-display font-bold text-foreground">
+              Crear Cuenta
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Únete a la red más grande de Cartago
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            
             <div className="p-4 bg-muted/50 rounded-2xl border border-border">
-              <Label className="text-base font-bold mb-3 block">¿Qué tipo de cuenta deseas?</Label>
-              <RadioGroup 
-                value={selectedRole} 
-                onValueChange={(v) => setValue("role", v as any)}
+              <Label className="text-base font-bold mb-3 block">
+                ¿Qué tipo de cuenta deseas?
+              </Label>
+              <RadioGroup
+                value={selectedRole}
+                onValueChange={(value) => setValue("role", value as RegisterFormValues["role"])}
                 className="grid grid-cols-1 md:grid-cols-2 gap-4"
               >
                 <div>
@@ -85,17 +98,25 @@ export default function Register() {
                     className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent/5 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
                   >
                     <span className="font-bold text-lg mb-1">Visitante</span>
-                    <span className="text-xs text-muted-foreground text-center">Para buscar y calificar negocios</span>
+                    <span className="text-xs text-muted-foreground text-center">
+                      Para buscar y calificar negocios
+                    </span>
                   </Label>
                 </div>
                 <div>
-                  <RadioGroupItem value="business_owner" id="owner" className="peer sr-only" />
+                  <RadioGroupItem
+                    value="business_owner"
+                    id="owner"
+                    className="peer sr-only"
+                  />
                   <Label
                     htmlFor="owner"
                     className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent/5 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
                   >
                     <span className="font-bold text-lg mb-1">Negocio</span>
-                    <span className="text-xs text-muted-foreground text-center">Para publicar y gestionar tu empresa</span>
+                    <span className="text-xs text-muted-foreground text-center">
+                      Para publicar y gestionar tu empresa
+                    </span>
                   </Label>
                 </div>
               </RadioGroup>
@@ -104,33 +125,69 @@ export default function Register() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre completo</Label>
-                <Input id="name" {...register("name")} className="rounded-xl h-11" placeholder="Juan Pérez" />
-                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                <Input
+                  id="name"
+                  {...register("name")}
+                  className="rounded-xl h-11"
+                  placeholder="Juan Pérez"
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="phone">Teléfono (opcional)</Label>
-                <Input id="phone" {...register("phone")} className="rounded-xl h-11" placeholder="310 000 0000" />
+                <Input
+                  id="phone"
+                  {...register("phone")}
+                  className="rounded-xl h-11"
+                  placeholder="310 000 0000"
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
-              <Input id="email" type="email" {...register("email")} className="rounded-xl h-11" placeholder="tu@correo.com" />
-              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+              <Input
+                id="email"
+                type="email"
+                {...register("email")}
+                className="rounded-xl h-11"
+                placeholder="tu@correo.com"
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
-              <Input id="password" type="password" {...register("password")} className="rounded-xl h-11" placeholder="Mínimo 6 caracteres" />
-              {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-            </div>
-            
-            <div className="text-xs text-muted-foreground px-1">
-              Al registrarte aceptas nuestra <Link href="/privacidad" className="text-primary hover:underline">Política de Privacidad</Link>.
+              <Input
+                id="password"
+                type="password"
+                {...register("password")}
+                className="rounded-xl h-11"
+                placeholder="Mínimo 6 caracteres"
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
             </div>
 
-            <Button type="submit" disabled={isPending} className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20">
+            <div className="text-xs text-muted-foreground px-1">
+              Al registrarte aceptas nuestra{" "}
+              <Link href="/privacidad" className="text-primary hover:underline">
+                Política de Privacidad
+              </Link>
+              .
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20"
+            >
               {isPending ? "Creando cuenta..." : "Crear mi cuenta"}
             </Button>
           </form>

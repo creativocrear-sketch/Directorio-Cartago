@@ -4,28 +4,40 @@ import { Layout } from "@/components/layout";
 import { BusinessCard } from "@/components/business-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, TrendingUp, Store, UtensilsCrossed, Wrench, Heart, GraduationCap, Music, Laptop } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  TrendingUp,
+  Store,
+  UtensilsCrossed,
+  Wrench,
+  Heart,
+  GraduationCap,
+  Music,
+  Laptop,
+  Sparkles,
+} from "lucide-react";
 import { useGetBusinesses, useGetCategories } from "@workspace/api-client-react";
 
 const iconMap: Record<string, React.ElementType> = {
-  "Restaurantes": UtensilsCrossed,
-  "Tiendas": Store,
-  "Servicios": Wrench,
-  "Salud": Heart,
-  "Educación": GraduationCap,
-  "Entretenimiento": Music,
-  "Tecnología": Laptop,
+  Restaurantes: UtensilsCrossed,
+  Tiendas: Store,
+  Servicios: Wrench,
+  Salud: Heart,
+  Educación: GraduationCap,
+  Entretenimiento: Music,
+  Tecnología: Laptop,
 };
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = React.useState("");
 
-  const { data: businessesData, isLoading: loadingBiz } = useGetBusinesses({ 
-    status: "approved", 
-    limit: 6 
+  const { data: businessesData, isLoading: loadingBiz } = useGetBusinesses({
+    status: "approved",
+    limit: 6,
   });
-  
+
   const { data: categories, isLoading: loadingCat } = useGetCategories();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -35,14 +47,29 @@ export default function Home() {
     }
   };
 
+  const featuredBusinesses = businessesData?.businesses ?? [];
+  const stats = [
+    {
+      label: "Negocios activos",
+      value: featuredBusinesses.length > 0 ? `${featuredBusinesses.length}+` : "24+",
+    },
+    {
+      label: "Categorías destacadas",
+      value: categories?.length ? `${categories.length}` : "10",
+    },
+    {
+      label: "Consultas rápidas",
+      value: "24/7",
+    },
+  ];
+
   return (
     <Layout>
-      {/* Hero Section */}
       <section className="relative pt-24 pb-32 lg:pt-32 lg:pb-40 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img 
-            src={`${import.meta.env.BASE_URL}images/hero-bg.png`} 
-            alt="Fondo Cartago" 
+          <img
+            src={`${import.meta.env.BASE_URL}images/hero-bg.png`}
+            alt="Fondo Cartago"
             className="w-full h-full object-cover opacity-90"
           />
           <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px]" />
@@ -54,54 +81,75 @@ export default function Home() {
             <MapPin className="w-4 h-4" />
             <span>Descubre lo mejor de Cartago, Valle</span>
           </div>
-          
+
           <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground max-w-4xl mb-6 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
             Encuentra todo lo que necesitas en tu ciudad
           </h1>
-          
+
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            El directorio comercial más completo y actualizado de Cartago. Restaurantes, servicios, tiendas y más, a un clic de distancia.
+            El directorio comercial más completo y actualizado de Cartago.
+            Restaurantes, servicios, tiendas y más, a un clic de distancia.
           </p>
 
           <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
-            <form onSubmit={handleSearch} className="relative glass p-2 rounded-2xl flex items-center shadow-2xl">
+            <form
+              onSubmit={handleSearch}
+              className="relative glass p-2 rounded-2xl flex items-center shadow-2xl"
+            >
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input 
-                  type="search" 
-                  placeholder="¿Qué estás buscando? Ej. Pizzería, Abogado, Ferretería..." 
+                <Input
+                  type="search"
+                  placeholder="¿Qué estás buscando? Ej. Pizzería, Abogado, Ferretería..."
                   className="w-full h-14 pl-12 pr-4 bg-transparent border-none shadow-none focus-visible:ring-0 text-lg"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <Button type="submit" size="lg" className="h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-lg shadow-primary/25 transition-transform hover:-translate-y-0.5">
+              <Button
+                type="submit"
+                size="lg"
+                className="h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-lg shadow-primary/25 transition-transform hover:-translate-y-0.5"
+              >
                 Buscar
               </Button>
             </form>
           </div>
+
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="glass rounded-2xl px-6 py-5 text-left shadow-lg shadow-black/5"
+              >
+                <div className="text-3xl font-display font-bold text-foreground">
+                  {stat.value}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Categories Grid */}
       <section className="py-20 bg-background relative z-20 -mt-10">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-3xl font-display font-bold">Explora por Categorías</h2>
             <Button variant="ghost" asChild className="hidden sm:flex text-primary">
-              <Link href="/businesses">Ver todo &rarr;</Link>
+              <Link href="/businesses">Ver todo →</Link>
             </Button>
           </div>
 
           {loadingCat ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {[1, 2, 3, 4, 5, 6].map(i => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-auto-fit gap-4 sm:gap-6 justify-center">
-              {categories?.slice(0, 8).map(cat => {
+              {categories?.slice(0, 8).map((cat) => {
                 const Icon = iconMap[cat.name] || Store;
                 return (
                   <Link key={cat.id} href={`/businesses?categoryId=${cat.id}`} className="group">
@@ -110,8 +158,12 @@ export default function Home() {
                         <Icon className="w-7 h-7" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">{cat.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{cat.businessCount} negocios</p>
+                        <h3 className="font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
+                          {cat.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {cat.businessCount} negocios
+                        </p>
                       </div>
                     </div>
                   </Link>
@@ -122,7 +174,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Businesses */}
       <section className="py-20 bg-muted/30 border-t border-border/50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
@@ -131,7 +182,9 @@ export default function Home() {
                 <TrendingUp className="w-4 h-4" />
                 Destacados
               </div>
-              <h2 className="text-3xl md:text-4xl font-display font-bold">Negocios Recientes</h2>
+              <h2 className="text-3xl md:text-4xl font-display font-bold">
+                Negocios Recientes
+              </h2>
             </div>
             <Button asChild variant="outline" className="rounded-full bg-white">
               <Link href="/businesses">Ver directorio completo</Link>
@@ -140,13 +193,13 @@ export default function Home() {
 
           {loadingBiz ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="h-80 rounded-2xl bg-muted animate-pulse" />
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {businessesData?.businesses.map(business => (
+              {featuredBusinesses.map((business) => (
                 <BusinessCard key={business.id} business={business} />
               ))}
             </div>
@@ -154,19 +207,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent opacity-90 z-0" />
         <div className="container mx-auto px-4 relative z-10 text-center text-white">
-          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">¿Tienes un negocio en Cartago?</h2>
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold mb-5">
+            <Sparkles className="w-4 h-4" />
+            Mejora tu presencia digital local
+          </div>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
+            ¿Tienes un negocio en Cartago?
+          </h2>
           <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-10">
-            Únete a nuestro directorio y llega a miles de clientes potenciales. El registro básico es completamente gratis.
+            Únete a nuestro directorio y llega a miles de clientes potenciales.
+            El registro básico es completamente gratis.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90 font-bold px-8 h-14 rounded-xl shadow-xl">
+            <Button
+              size="lg"
+              asChild
+              className="bg-white text-primary hover:bg-white/90 font-bold px-8 h-14 rounded-xl shadow-xl"
+            >
               <Link href="/register">Registrar mi negocio</Link>
             </Button>
-            <Button size="lg" asChild variant="outline" className="border-white text-white hover:bg-white/10 font-bold px-8 h-14 rounded-xl">
+            <Button
+              size="lg"
+              asChild
+              variant="outline"
+              className="border-white text-white hover:bg-white/10 font-bold px-8 h-14 rounded-xl"
+            >
               <Link href="/plans">Ver planes Premium</Link>
             </Button>
           </div>
