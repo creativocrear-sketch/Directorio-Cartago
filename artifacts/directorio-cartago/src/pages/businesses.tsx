@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useSearch } from "wouter";
 import { Layout } from "@/components/layout";
 import { BusinessCard } from "@/components/business-card";
@@ -13,6 +13,10 @@ import {
 } from "@/components/ui/select";
 import { Search, SlidersHorizontal, MapPinOff } from "lucide-react";
 import { useGetBusinesses, useGetCategories } from "@workspace/api-client-react";
+import {
+  fallbackCategories,
+  getFallbackBusinesses,
+} from "@/lib/fallback-directory";
 
 export default function Businesses() {
   const searchString = useSearch();
@@ -33,6 +37,24 @@ export default function Businesses() {
     limit: 12,
   });
 
+  const fallbackData = useMemo(
+    () =>
+      getFallbackBusinesses({
+        search: searchTerm || undefined,
+        categoryId: categoryId !== "all" ? Number(categoryId) : undefined,
+        page,
+        limit: 12,
+      }),
+    [categoryId, page, searchTerm],
+  );
+
+  const visibleCategories = categories?.length ? categories : fallbackCategories;
+  const listData =
+    data?.businesses && data.businesses.length > 0 ? data : fallbackData;
+  const usingFallback =
+    !!fallbackData.businesses.length &&
+    (!data || !data.businesses.length || isError);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
@@ -43,11 +65,11 @@ export default function Businesses() {
       <div className="bg-muted/30 border-b border-border/50 pt-10 pb-16">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-display font-bold text-foreground mb-4">
-            Directorio de Negocios
+            Directorio de negocios
           </h1>
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl">
-            Encuentra los mejores lugares, profesionales y servicios en Cartago.
-            Utiliza los filtros para refinar tu búsqueda.
+            Encuentra lugares, profesionales y servicios en Cartago. Usa los
+            filtros para descubrir opciones por categoria o por nombre.
           </p>
 
           <form
@@ -59,7 +81,7 @@ export default function Businesses() {
               <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por nombre, categoría..."
+                placeholder="Buscar por nombre, categoria o servicio..."
                 className="w-full h-12 pl-10 bg-white/50 border-border"
               />
             </div>
@@ -75,12 +97,12 @@ export default function Businesses() {
                 <SelectTrigger className="w-full h-12 bg-white/50 border-border">
                   <div className="flex items-center gap-2">
                     <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-                    <SelectValue placeholder="Categoría" />
+                    <SelectValue placeholder="Categoria" />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {categories?.map((cat) => (
+                  <SelectItem value="all">Todas las categorias</SelectItem>
+                  {visibleCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id.toString()}>
                       {cat.name}
                     </SelectItem>
@@ -96,31 +118,31 @@ export default function Businesses() {
               Buscar
             </Button>
           </form>
+
+          {usingFallback && (
+            <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+              Mostrando un catalogo base mientras termina de responder la API.
+            </div>
+          )}
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        {isLoading ? (
+        {isLoading && !listData.businesses.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div key={i} className="h-80 rounded-2xl bg-muted animate-pulse" />
             ))}
           </div>
-        ) : isError ? (
-          <div className="text-center py-20">
-            <p className="text-destructive font-medium">
-              Hubo un error al cargar los negocios. Intenta nuevamente.
-            </p>
-          </div>
-        ) : data?.businesses.length === 0 ? (
+        ) : listData.businesses.length === 0 ? (
           <div className="text-center py-32 bg-muted/20 rounded-3xl border border-border/50 border-dashed">
             <MapPinOff className="w-16 h-16 mx-auto text-muted-foreground mb-4 opacity-50" />
             <h3 className="text-2xl font-bold text-foreground mb-2">
               No se encontraron resultados
             </h3>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Intenta buscar con otros términos o cambia la categoría para ver más
-              negocios.
+              Intenta buscar con otros terminos o cambia la categoria para ver
+              mas negocios.
             </p>
             <Button
               variant="outline"
@@ -137,12 +159,12 @@ export default function Businesses() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {data?.businesses.map((business) => (
+              {listData.businesses.map((business) => (
                 <BusinessCard key={business.id} business={business} />
               ))}
             </div>
 
-            {data && data.totalPages > 1 && (
+            {listData.totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-16">
                 <Button
                   variant="outline"
@@ -153,13 +175,15 @@ export default function Businesses() {
                   Anterior
                 </Button>
                 <div className="text-sm font-medium text-muted-foreground px-4">
-                  Página {page} de {data.totalPages}
+                  Pagina {listData.page} de {listData.totalPages}
                 </div>
                 <Button
                   variant="outline"
-                  disabled={page === data.totalPages}
+                  disabled={page === listData.totalPages}
                   onClick={() =>
-                    setPage((current) => Math.min(data.totalPages, current + 1))
+                    setPage((current) =>
+                      Math.min(listData.totalPages, current + 1),
+                    )
                   }
                   className="rounded-xl"
                 >

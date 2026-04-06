@@ -18,15 +18,16 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useGetBusinesses, useGetCategories } from "@workspace/api-client-react";
+import { fallbackCategories, getFallbackBusinesses } from "@/lib/fallback-directory";
 
 const iconMap: Record<string, React.ElementType> = {
   Restaurantes: UtensilsCrossed,
   Tiendas: Store,
   Servicios: Wrench,
   Salud: Heart,
-  Educación: GraduationCap,
+  Educacion: GraduationCap,
   Entretenimiento: Music,
-  Tecnología: Laptop,
+  Tecnologia: Laptop,
 };
 
 export default function Home() {
@@ -37,8 +38,11 @@ export default function Home() {
     status: "approved",
     limit: 6,
   });
-
   const { data: categories, isLoading: loadingCat } = useGetCategories();
+  const fallbackFeatured = React.useMemo(
+    () => getFallbackBusinesses({ limit: 6 }),
+    [],
+  );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,18 +51,22 @@ export default function Home() {
     }
   };
 
-  const featuredBusinesses = businessesData?.businesses ?? [];
+  const featuredBusinesses =
+    businessesData?.businesses && businessesData.businesses.length > 0
+      ? businessesData.businesses
+      : fallbackFeatured.businesses;
+  const visibleCategories = categories?.length ? categories : fallbackCategories;
   const stats = [
     {
       label: "Negocios activos",
       value: featuredBusinesses.length > 0 ? `${featuredBusinesses.length}+` : "24+",
     },
     {
-      label: "Categorías destacadas",
-      value: categories?.length ? `${categories.length}` : "10",
+      label: "Categorias destacadas",
+      value: `${visibleCategories.length}`,
     },
     {
-      label: "Consultas rápidas",
+      label: "Consultas rapidas",
       value: "24/7",
     },
   ];
@@ -87,8 +95,8 @@ export default function Home() {
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            El directorio comercial más completo y actualizado de Cartago.
-            Restaurantes, servicios, tiendas y más, a un clic de distancia.
+            El directorio comercial mas completo y actualizado de Cartago.
+            Restaurantes, servicios, tiendas y mas, a un clic de distancia.
           </p>
 
           <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
@@ -100,7 +108,7 @@ export default function Home() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="¿Qué estás buscando? Ej. Pizzería, Abogado, Ferretería..."
+                  placeholder="Que estas buscando? Ej. Pizzeria, abogado, ferreteria..."
                   className="w-full h-14 pl-12 pr-4 bg-transparent border-none shadow-none focus-visible:ring-0 text-lg"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -135,13 +143,13 @@ export default function Home() {
       <section className="py-20 bg-background relative z-20 -mt-10">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-display font-bold">Explora por Categorías</h2>
+            <h2 className="text-3xl font-display font-bold">Explora por Categorias</h2>
             <Button variant="ghost" asChild className="hidden sm:flex text-primary">
-              <Link href="/businesses">Ver todo →</Link>
+              <Link href="/businesses">Ver todo -&gt;</Link>
             </Button>
           </div>
 
-          {loadingCat ? (
+          {loadingCat && !visibleCategories.length ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
@@ -149,7 +157,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-auto-fit gap-4 sm:gap-6 justify-center">
-              {categories?.slice(0, 8).map((cat) => {
+              {visibleCategories.slice(0, 8).map((cat) => {
                 const Icon = iconMap[cat.name] || Store;
                 return (
                   <Link key={cat.id} href={`/businesses?categoryId=${cat.id}`} className="group">
@@ -183,7 +191,7 @@ export default function Home() {
                 Destacados
               </div>
               <h2 className="text-3xl md:text-4xl font-display font-bold">
-                Negocios Recientes
+                Negocios recientes
               </h2>
             </div>
             <Button asChild variant="outline" className="rounded-full bg-white">
@@ -191,7 +199,7 @@ export default function Home() {
             </Button>
           </div>
 
-          {loadingBiz ? (
+          {loadingBiz && !featuredBusinesses.length ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-80 rounded-2xl bg-muted animate-pulse" />
@@ -215,11 +223,11 @@ export default function Home() {
             Mejora tu presencia digital local
           </div>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
-            ¿Tienes un negocio en Cartago?
+            Tienes un negocio en Cartago?
           </h2>
           <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-10">
-            Únete a nuestro directorio y llega a miles de clientes potenciales.
-            El registro básico es completamente gratis.
+            Unete a nuestro directorio y llega a miles de clientes potenciales.
+            El registro basico es completamente gratis.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button

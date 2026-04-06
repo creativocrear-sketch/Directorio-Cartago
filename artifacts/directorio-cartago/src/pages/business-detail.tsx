@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useAuth } from "@/components/auth-provider";
@@ -25,22 +25,29 @@ import {
   normalizeInstagramUrl,
   normalizeWebsiteUrl,
 } from "@/lib/business-media";
+import { getFallbackBusinessById } from "@/lib/fallback-directory";
 
 export default function BusinessDetail() {
   const { id } = useParams();
+  const numericId = Number(id);
   const { user } = useAuth();
-  const { data: business, isLoading, isError } = useGetBusiness(Number(id));
+  const { data: business, isLoading, isError } = useGetBusiness(numericId);
+  const fallbackBusiness = useMemo(
+    () => getFallbackBusinessById(numericId),
+    [numericId],
+  );
+  const currentBusiness = business ?? fallbackBusiness;
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [heroImage, setHeroImage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!business) return;
-    const nextImage = getBusinessImageSrc(business);
+    if (!currentBusiness) return;
+    const nextImage = getBusinessImageSrc(currentBusiness);
     setHeroImage(nextImage);
     setActiveImage(null);
-  }, [business]);
+  }, [currentBusiness]);
 
-  if (isLoading) {
+  if (isLoading && !currentBusiness) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12 animate-pulse">
@@ -58,7 +65,7 @@ export default function BusinessDetail() {
     );
   }
 
-  if (isError || !business) {
+  if (!currentBusiness) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-32 text-center">
@@ -74,32 +81,42 @@ export default function BusinessDetail() {
     );
   }
 
-  const currentImage = activeImage || heroImage || getBusinessImageSrc(business);
+  const currentImage =
+    activeImage || heroImage || getBusinessImageSrc(currentBusiness);
   const isPremiumUser = user?.hasActiveSubscription;
-  const isOwner = user?.id === business.ownerId;
+  const isOwner = user?.id === currentBusiness.ownerId;
   const canViewPremiumInfo = isPremiumUser || isOwner || user?.role === "admin";
-  const instagramUrl = normalizeInstagramUrl(business.instagram);
-  const instagramHandle = getInstagramHandle(business.instagram);
-  const facebookUrl = normalizeFacebookUrl(business.facebook);
-  const websiteUrl = normalizeWebsiteUrl(business.website);
+  const instagramUrl = normalizeInstagramUrl(currentBusiness.instagram);
+  const instagramHandle = getInstagramHandle(currentBusiness.instagram);
+  const facebookUrl = normalizeFacebookUrl(currentBusiness.facebook);
+  const websiteUrl = normalizeWebsiteUrl(currentBusiness.website);
+  const usingFallback = !!fallbackBusiness && (!business || isError);
 
   return (
     <Layout>
       <div className="bg-muted/20 border-b border-border/50">
         <div className="container mx-auto px-4 py-8">
+          {usingFallback && (
+            <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+              Mostrando la ficha local de este negocio mientras la API termina de responder.
+            </div>
+          )}
+
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-1/2 xl:w-7/12">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-border/50 shadow-lg mb-4 bg-black">
                 <img
                   src={currentImage}
-                  alt={business.name}
+                  alt={currentBusiness.name}
                   className="w-full h-full object-contain"
-                  onError={() => setHeroImage(getBusinessFallbackImage(business.categoryName))}
+                  onError={() =>
+                    setHeroImage(getBusinessFallbackImage(currentBusiness.categoryName))
+                  }
                 />
               </div>
-              {business.images && business.images.length > 1 && (
+              {currentBusiness.images && currentBusiness.images.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                  {business.images.map((img) => (
+                  {currentBusiness.images.map((img) => (
                     <button
                       key={img.id}
                       onClick={() => setActiveImage(img.url)}
@@ -115,7 +132,7 @@ export default function BusinessDetail() {
                         className="w-full h-full object-cover"
                         onError={(event) => {
                           event.currentTarget.src = getBusinessFallbackImage(
-                            business.categoryName,
+                            currentBusiness.categoryName,
                           );
                         }}
                       />
@@ -128,30 +145,30 @@ export default function BusinessDetail() {
             <div className="w-full lg:w-1/2 xl:w-5/12 flex flex-col pt-2 lg:pt-8">
               <div className="flex items-center gap-3 mb-3">
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
-                  {business.categoryName}
+                  {currentBusiness.categoryName}
                 </Badge>
-                {business.status !== "approved" && (
-                  <Badge variant="secondary">Estado: {business.status}</Badge>
+                {currentBusiness.status !== "approved" && (
+                  <Badge variant="secondary">Estado: {currentBusiness.status}</Badge>
                 )}
               </div>
 
               <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
-                {business.name}
+                {currentBusiness.name}
               </h1>
 
               <div className="flex items-center gap-2 text-muted-foreground mb-6 text-lg">
                 <MapPin className="w-5 h-5 text-primary" />
-                <span>{business.address}</span>
+                <span>{currentBusiness.address}</span>
               </div>
 
-              {business.averageRating ? (
+              {currentBusiness.averageRating ? (
                 <div className="flex items-center gap-2 mb-8">
                   <div className="flex text-amber-500">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         className={`w-5 h-5 ${
-                          i < Math.round(business.averageRating!)
+                          i < Math.round(currentBusiness.averageRating!)
                             ? "fill-current"
                             : "text-muted"
                         }`}
@@ -159,17 +176,17 @@ export default function BusinessDetail() {
                     ))}
                   </div>
                   <span className="font-bold text-foreground">
-                    {business.averageRating.toFixed(1)}
+                    {currentBusiness.averageRating.toFixed(1)}
                   </span>
                   <span className="text-muted-foreground text-sm">
-                    ({business.reviewCount} reseñas)
+                    ({currentBusiness.reviewCount} resenas)
                   </span>
                 </div>
               ) : null}
 
               <div className="space-y-4 mt-auto border-t border-border pt-6">
                 <p className="text-foreground leading-relaxed">
-                  {business.description || "Sin descripción disponible."}
+                  {currentBusiness.description || "Sin descripcion disponible."}
                 </p>
 
                 {instagramUrl && instagramHandle && (
@@ -192,26 +209,26 @@ export default function BusinessDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold font-display mb-6">
-              Información de Contacto
+              Informacion de contacto
             </h2>
 
             {canViewPremiumInfo ? (
               <div className="bg-card rounded-3xl p-8 border border-border shadow-sm space-y-6">
-                {business.phone && (
+                {currentBusiness.phone && (
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                       <Phone className="w-6 h-6" />
                     </div>
                     <div>
                       <h4 className="text-sm text-muted-foreground font-medium mb-1">
-                        Teléfono
+                        Telefono
                       </h4>
-                      <p className="text-lg font-semibold">{business.phone}</p>
+                      <p className="text-lg font-semibold">{currentBusiness.phone}</p>
                     </div>
                   </div>
                 )}
 
-                {business.whatsapp && (
+                {currentBusiness.whatsapp && (
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                       <MessageCircle className="w-6 h-6" />
@@ -221,18 +238,18 @@ export default function BusinessDetail() {
                         WhatsApp
                       </h4>
                       <a
-                        href={`https://wa.me/${business.whatsapp.replace(/\D/g, "")}`}
+                        href={`https://wa.me/${currentBusiness.whatsapp.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noreferrer"
                         className="text-lg font-semibold hover:text-emerald-600 hover:underline"
                       >
-                        {business.whatsapp}
+                        {currentBusiness.whatsapp}
                       </a>
                     </div>
                   </div>
                 )}
 
-                {business.schedule && (
+                {currentBusiness.schedule && (
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
                       <Clock className="w-6 h-6" />
@@ -241,7 +258,7 @@ export default function BusinessDetail() {
                       <h4 className="text-sm text-muted-foreground font-medium mb-1">
                         Horario
                       </h4>
-                      <p className="text-base whitespace-pre-line">{business.schedule}</p>
+                      <p className="text-base whitespace-pre-line">{currentBusiness.schedule}</p>
                     </div>
                   </div>
                 )}
@@ -262,7 +279,7 @@ export default function BusinessDetail() {
                   {websiteUrl && (
                     <Button variant="outline" size="sm" asChild className="rounded-xl">
                       <a href={websiteUrl} target="_blank" rel="noreferrer">
-                        <Globe className="w-4 h-4 mr-2" /> Sitio Web
+                        <Globe className="w-4 h-4 mr-2" /> Sitio web
                       </a>
                     </Button>
                   )}
@@ -273,11 +290,11 @@ export default function BusinessDetail() {
                 <Crown className="w-24 h-24 text-amber-500/20 absolute -right-4 -bottom-4" />
                 <Lock className="w-12 h-12 text-amber-500 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-amber-900 mb-2">
-                  Información Exclusiva
+                  Informacion exclusiva
                 </h3>
                 <p className="text-amber-800/80 mb-6 max-w-md mx-auto">
-                  Teléfono, WhatsApp, redes sociales y horarios están disponibles
-                  solo para usuarios con suscripción Premium.
+                  Telefono, WhatsApp, redes sociales y horarios estan disponibles
+                  solo para usuarios con suscripcion Premium.
                 </p>
                 <Button
                   asChild
@@ -291,21 +308,21 @@ export default function BusinessDetail() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold font-display mb-6">Ubicación</h2>
+            <h2 className="text-2xl font-bold font-display mb-6">Ubicacion</h2>
             <div className="bg-card rounded-3xl p-2 border border-border shadow-sm h-[400px] overflow-hidden relative">
-              {canViewPremiumInfo && business.googleMapsUrl ? (
+              {canViewPremiumInfo && currentBusiness.googleMapsUrl ? (
                 <iframe
-                  src={business.googleMapsUrl}
+                  src={currentBusiness.googleMapsUrl}
                   className="w-full h-full rounded-2xl border-0"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Mapa de ubicación"
+                  title="Mapa de ubicacion"
                 />
               ) : (
                 <div className="w-full h-full bg-muted/50 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
                   <MapPin className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
                   <p className="text-muted-foreground font-medium mb-2">
-                    {business.address}
+                    {currentBusiness.address}
                   </p>
                   {!canViewPremiumInfo && (
                     <p className="text-xs text-muted-foreground mt-4">
