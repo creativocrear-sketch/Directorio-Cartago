@@ -5,63 +5,68 @@ import { ShieldCheck } from "lucide-react";
 export default function Privacy() {
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-16 max-w-4xl">
-        <div className="flex justify-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-            <ShieldCheck className="w-8 h-8" />
+      <div className="container mx-auto max-w-4xl px-4 py-16">
+        <div className="mb-8 flex justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <ShieldCheck className="h-8 w-8" />
           </div>
         </div>
-        
-        <h1 className="text-4xl font-display font-bold text-center mb-12">Política de Privacidad y Tratamiento de Datos Personales</h1>
-        
-        <div className="prose prose-slate max-w-none text-muted-foreground prose-headings:text-foreground prose-h2:font-display">
+
+        <h1 className="mb-6 text-center text-4xl font-display font-bold">
+          Politica de privacidad y tratamiento de datos
+        </h1>
+        <p className="mx-auto mb-12 max-w-3xl text-center text-muted-foreground">
+          Esta politica explica como Directorio Cartago recopila, usa y protege
+          la informacion personal de usuarios y negocios registrados en la plataforma.
+        </p>
+
+        <div className="prose prose-slate max-w-none rounded-3xl border border-border/70 bg-card p-8 text-muted-foreground shadow-sm prose-headings:font-display prose-headings:text-foreground">
+          <h2>1. Marco legal</h2>
           <p>
-            Dando cumplimiento a lo dispuesto en la <strong>Ley 1581 de 2012</strong>, "Por el cual se dictan disposiciones generales para la protección de datos personales" y el Decreto 1377 de 2013 en Colombia, el Directorio de Cartago informa a sus usuarios sobre la política de tratamiento de la información.
+            Damos cumplimiento a la Ley 1581 de 2012 y a las normas complementarias
+            vigentes en Colombia sobre proteccion de datos personales.
           </p>
 
-          <h2>1. Información Recopilada</h2>
-          <p>
-            Recopilamos información personal que nos proporcionas voluntariamente al registrarte en nuestra plataforma, tales como:
-          </p>
+          <h2>2. Datos que podemos recopilar</h2>
           <ul>
-            <li>Nombre completo o razón social.</li>
-            <li>Correo electrónico.</li>
-            <li>Número de teléfono o celular.</li>
-            <li>Información pública del negocio (dirección, redes sociales, horarios).</li>
+            <li>Nombre completo o nombre comercial.</li>
+            <li>Correo electronico.</li>
+            <li>Telefono de contacto.</li>
+            <li>Informacion publica del negocio, como direccion, horarios y redes.</li>
+            <li>Datos basicos de uso de la plataforma para mejorar el servicio.</li>
           </ul>
 
-          <h2>2. Finalidad del Tratamiento</h2>
-          <p>
-            Los datos personales recolectados serán utilizados para las siguientes finalidades:
-          </p>
+          <h2>3. Finalidad del tratamiento</h2>
           <ul>
-            <li>Proveer los servicios del directorio comercial.</li>
-            <li>Gestionar las cuentas de usuario y perfiles de negocios.</li>
-            <li>Enviar comunicaciones operativas o promocionales relacionadas con el servicio.</li>
-            <li>Analizar estadísticas de uso para mejorar la plataforma.</li>
+            <li>Crear y administrar cuentas de usuario.</li>
+            <li>Publicar y gestionar fichas de negocios dentro del directorio.</li>
+            <li>Enviar comunicaciones operativas relacionadas con el servicio.</li>
+            <li>Mejorar la experiencia, soporte y seguridad de la plataforma.</li>
           </ul>
 
-          <h2>3. Derechos de los Titulares</h2>
-          <p>
-            De acuerdo con la Ley 1581 de 2012, tienes derecho a:
-          </p>
+          <h2>4. Derechos del titular</h2>
+          <p>Como titular de los datos puedes solicitar en cualquier momento:</p>
           <ul>
-            <li>Conocer, actualizar y rectificar tus datos personales.</li>
-            <li>Solicitar prueba de la autorización otorgada.</li>
-            <li>Ser informado sobre el uso que se ha dado a tus datos personales.</li>
-            <li>Revocar la autorización y/o solicitar la supresión del dato cuando no se respeten los principios, derechos y garantías legales.</li>
-            <li>Acceder en forma gratuita a tus datos personales que hayan sido objeto de Tratamiento.</li>
+            <li>Conocer, actualizar o corregir tu informacion.</li>
+            <li>Solicitar evidencia de la autorizacion otorgada.</li>
+            <li>Revocar la autorizacion cuando legalmente aplique.</li>
+            <li>Solicitar la eliminacion de tus datos si no existe deber legal de conservarlos.</li>
           </ul>
 
-          <h2>4. Seguridad de la Información</h2>
+          <h2>5. Seguridad</h2>
           <p>
-            Implementamos medidas de seguridad físicas, técnicas y administrativas para proteger tu información contra acceso no autorizado, alteración, divulgación o destrucción. Las contraseñas son almacenadas de forma cifrada (hash) y no tenemos acceso a las mismas en texto plano.
+            Aplicamos medidas tecnicas, administrativas y operativas para reducir
+            riesgos de acceso no autorizado, perdida o alteracion de la informacion.
+            Las contrasenas no se almacenan en texto plano.
           </p>
 
-          <h2>5. Contacto</h2>
+          <h2>6. Contacto</h2>
           <p>
-            Para ejercer tus derechos como titular de los datos o si tienes alguna pregunta sobre esta política, puedes contactarnos a través de:
-            <br /><strong>Email:</strong> privacidad@directoriocartago.com
+            Para consultas sobre esta politica o solicitudes relacionadas con datos
+            personales, puedes escribir a:
+          </p>
+          <p>
+            <strong>privacidad@directoriocartago.com</strong>
           </p>
         </div>
       </div>

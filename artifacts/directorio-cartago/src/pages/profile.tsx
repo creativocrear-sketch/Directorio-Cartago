@@ -6,79 +6,115 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { User, Shield } from "lucide-react";
+import { Shield, User } from "lucide-react";
+
+function formatRole(role?: string) {
+  if (role === "business_owner") return "Negocio";
+  if (role === "admin") return "Administrador";
+  return "Visitante";
+}
 
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [name, setName] = React.useState(user?.name || "");
   const [phone, setPhone] = React.useState(user?.phone || "");
 
   const { mutate, isPending } = useUpdateProfile({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Perfil actualizado", description: "Tus datos se guardaron correctamente." });
-        window.location.reload(); // Simple refresh to update context
+        toast({
+          title: "Perfil actualizado",
+          description: "Tus datos se guardaron correctamente.",
+        });
+        window.location.reload();
       },
-      onError: () => toast({ title: "Error", variant: "destructive" })
-    }
+      onError: () =>
+        toast({
+          title: "No se pudo guardar",
+          description: "Intenta nuevamente.",
+          variant: "destructive",
+        }),
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     mutate({ data: { name, phone } });
   };
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-16 max-w-2xl">
-        <h1 className="text-3xl font-display font-bold mb-8">Mi Perfil</h1>
-        
-        <div className="bg-card rounded-3xl p-8 border border-border shadow-sm">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
-              {user?.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <p className="font-bold text-lg">{user?.email}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs bg-muted px-2 py-1 rounded-md text-muted-foreground uppercase tracking-wide font-medium">
-                  Rol: {user?.role}
-                </span>
-                {user?.hasActiveSubscription && (
-                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md uppercase tracking-wide font-bold">
-                    Premium
-                  </span>
-                )}
-              </div>
-            </div>
+      <div className="container mx-auto max-w-4xl px-4 py-16">
+        <div className="mb-8 flex items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <User className="h-7 w-7" />
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label>Nombre Completo</Label>
-              <Input value={name} onChange={e => setName(e.target.value)} className="rounded-xl h-11 bg-muted/50" />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Teléfono</Label>
-              <Input value={phone} onChange={e => setPhone(e.target.value)} className="rounded-xl h-11 bg-muted/50" />
-            </div>
-
-            <Button type="submit" disabled={isPending} className="rounded-xl px-8 bg-primary">
-              {isPending ? "Guardando..." : "Guardar Cambios"}
-            </Button>
-          </form>
+          <div>
+            <h1 className="text-3xl font-display font-bold">Mi perfil</h1>
+            <p className="text-muted-foreground">
+              Actualiza tu informacion personal y revisa el estado de tu cuenta.
+            </p>
+          </div>
         </div>
 
-        <div className="mt-8 p-6 bg-amber-50 border border-amber-100 rounded-3xl flex items-start gap-4 text-amber-800">
-          <Shield className="w-6 h-6 shrink-0 mt-1" />
-          <div>
-            <h4 className="font-bold mb-1">Protección de Datos</h4>
-            <p className="text-sm opacity-90">
-              Tus datos están protegidos según la Ley 1581 de Colombia. No compartimos tu información personal con terceros sin tu consentimiento.
-            </p>
+        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-[2rem] border border-border bg-card p-8 shadow-sm">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre completo</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="h-11 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefono</Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
+                  className="h-11 rounded-xl"
+                  placeholder="300 000 0000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Correo electronico</Label>
+                <Input value={user?.email || ""} disabled className="h-11 rounded-xl bg-muted/60" />
+              </div>
+
+              <Button type="submit" disabled={isPending} className="rounded-xl px-8">
+                {isPending ? "Guardando..." : "Guardar cambios"}
+              </Button>
+            </form>
+          </div>
+
+          <div className="space-y-6">
+            <div className="rounded-[2rem] border border-border bg-card p-6 shadow-sm">
+              <p className="text-sm text-muted-foreground">Rol de la cuenta</p>
+              <p className="mt-2 text-xl font-semibold">{formatRole(user?.role)}</p>
+              {user?.hasActiveSubscription && (
+                <div className="mt-4 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
+                  Premium activo
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6 text-amber-900 shadow-sm">
+              <div className="mb-3 flex items-center gap-3">
+                <Shield className="h-5 w-5" />
+                <h2 className="font-semibold">Proteccion de datos</h2>
+              </div>
+              <p className="text-sm">
+                Tus datos se gestionan bajo los lineamientos de privacidad de la
+                plataforma y solo se usan para operar tu cuenta y tus negocios.
+              </p>
+            </div>
           </div>
         </div>
       </div>

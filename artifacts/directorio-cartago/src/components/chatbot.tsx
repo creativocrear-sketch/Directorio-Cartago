@@ -1,297 +1,319 @@
-import { useState } from "react";
+import React from "react";
+import { Link } from "wouter";
+import {
+  Bot,
+  ExternalLink,
+  Loader2,
+  MapPin,
+  MessageCircle,
+  Search,
+  Send,
+  Sparkles,
+  Store,
+  X,
+} from "lucide-react";
+import {
+  fallbackBusinesses,
+  getFallbackBusinesses,
+} from "@/lib/fallback-directory";
+import { getBusinessImageSrc } from "@/lib/business-media";
+import type { Business } from "@workspace/api-client-react";
 
-interface Negocio {
-  name: string;
-  category: string;
-  address: string;
-  instagram?: string;
-  schedule?: string;
-  image?: string;
+type ChatMessage =
+  | { id: string; role: "user" | "assistant"; text: string }
+  | { id: string; role: "results"; results: Business[] };
+
+const QUICK_SEARCHES = [
+  "restaurantes",
+  "hoteles",
+  "salud",
+  "tecnologia",
+];
+
+function normalizeTerm(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
 }
 
-interface Mensaje {
-  tipo: "usuario" | "bot" | "resultados";
-  texto?: string;
-  resultados?: Negocio[];
+function createAssistantReply(query: string, results: Business[]) {
+  if (!results.length) {
+    return `No encontre resultados para "${query}". Prueba con una categoria como restaurantes, hoteles, salud o tecnologia.`;
+  }
+
+  if (results.length === 1) {
+    return `Encontre 1 opcion para "${query}". Aqui tienes la ficha mas cercana a tu busqueda.`;
+  }
+
+  return `Encontre ${results.length} opciones para "${query}". Te muestro las mas relevantes para que compares rapido.`;
+}
+
+async function searchBusinesses(query: string) {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: trimmed }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const apiResults = Array.isArray(data.results) ? data.results : [];
+      if (apiResults.length) {
+        return apiResults.slice(0, 4) as Business[];
+      }
+
+      if (typeof data.reply === "string" && data.reply.trim()) {
+        const localFallback = getFallbackBusinesses({ search: trimmed, limit: 4 });
+        return localFallback.businesses;
+      }
+    }
+  } catch {
+    // Fall back to local directory below.
+  }
+
+  return getFallbackBusinesses({ search: trimmed, limit: 4 }).businesses;
 }
 
 export default function Chatbot() {
-  const [messages, setMessages] = useState<Mensaje[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
+  const [input, setInput] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [messages, setMessages] = React.useState<ChatMessage[]>([
+    {
+      id: "welcome",
+      role: "assistant",
+      text: "Hola. Puedo ayudarte a encontrar negocios de Cartago por nombre, categoria o servicio.",
+    },
+  ]);
 
-  const enviar = async () => {
-    if (!input.trim()) return;
-    const mensajeUsuario = input.trim();
-    setMessages((prev) => [
-      ...prev,
-      { tipo: "usuario", texto: mensajeUsuario },
-    ]);
-    setInput("");
-    setLoading(true);
+  const submitQuery = React.useCallback(
+    async (rawQuery: string) => {
+      const query = rawQuery.trim();
+      if (!query) return;
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: mensajeUsuario }),
-      });
-
-      if (!res.ok) {
-        setMessages((prev) => [
-          ...prev,
-          { tipo: "bot", texto: `Error HTTP ${res.status}` },
-        ]);
-        return;
-      }
-
-      const data = await res.json();
-      setMessages((prev) => [...prev, { tipo: "bot", texto: data.reply }]);
-
-      if (data.results?.length > 0) {
-        setMessages((prev) => [
-          ...prev,
-          { tipo: "resultados", resultados: data.results },
-        ]);
-      }
-    } catch (error: any) {
-      setMessages((prev) => [
-        ...prev,
-        { tipo: "bot", texto: "Error: " + error.message },
+      setMessages((current) => [
+        ...current,
+        { id: `user-${Date.now()}`, role: "user", text: query },
       ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      setInput("");
+      setIsLoading(true);
+
+      const results = await searchBusinesses(query);
+      const assistantText = createAssistantReply(query, results);
+
+      setMessages((current) => {
+        const next: ChatMessage[] = [
+          ...current,
+          { id: `assistant-${Date.now()}`, role: "assistant", text: assistantText },
+        ];
+
+        if (results.length) {
+          next.push({ id: `results-${Date.now()}`, role: "results", results });
+        }
+
+        return next;
+      });
+      setIsLoading(false);
+    },
+    [],
+  );
+
+  const popularBusinesses = React.useMemo(
+    () => fallbackBusinesses.slice(0, 3),
+    [],
+  );
 
   return (
-    <div
-      style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 9999 }}
-    >
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {open && (
-        <div
-          style={{
-            width: "320px",
-            background: "white",
-            border: "1px solid #ddd",
-            borderRadius: "12px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-            marginBottom: "10px",
-            display: "flex",
-            flexDirection: "column",
-            maxHeight: "500px",
-          }}
-        >
-          {/* Header */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "12px",
-              borderBottom: "1px solid #eee",
-              background: "#1a73e8",
-              borderRadius: "12px 12px 0 0",
-            }}
-          >
-            <span
-              style={{ fontWeight: "bold", fontSize: "14px", color: "white" }}
-            >
-              🔍 Buscar negocios
-            </span>
-            <button
-              onClick={() => setOpen(false)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "18px",
-                color: "white",
-              }}
-            >
-              ✕
-            </button>
+        <div className="w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-border/70 bg-background/95 shadow-2xl backdrop-blur-xl">
+          <div className="border-b border-border/60 bg-gradient-to-r from-primary to-accent px-5 py-4 text-white">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
+                  <Bot className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold">Asistente Cartago</p>
+                  <p className="text-sm text-white/80">
+                    Busca negocios y servicios al instante
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full bg-white/10 p-2 transition hover:bg-white/20"
+                aria-label="Cerrar asistente"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Mensajes */}
-          <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "10px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              minHeight: "200px",
-              maxHeight: "320px",
-            }}
-          >
-            {messages.length === 0 && (
-              <div style={{ color: "#aaa", fontSize: "13px" }}>
-                Escribe el nombre de un negocio o categoría...
+          <div className="max-h-[28rem] overflow-y-auto px-4 py-4">
+            <div className="mb-4 rounded-2xl border border-primary/15 bg-primary/5 p-3">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Busquedas rapidas
               </div>
-            )}
-            {messages.map((m, i) => {
-              if (m.tipo === "usuario") {
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      alignSelf: "flex-end",
-                      background: "#1a73e8",
-                      color: "white",
-                      borderRadius: "12px 12px 0 12px",
-                      padding: "8px 12px",
-                      fontSize: "13px",
-                      maxWidth: "80%",
-                    }}
+              <div className="flex flex-wrap gap-2">
+                {QUICK_SEARCHES.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => submitQuery(item)}
+                    className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm transition hover:text-primary"
                   >
-                    {m.texto}
-                  </div>
-                );
-              }
-              if (m.tipo === "bot") {
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      alignSelf: "flex-start",
-                      background: "#f5f5f5",
-                      color: "#333",
-                      borderRadius: "12px 12px 12px 0",
-                      padding: "8px 12px",
-                      fontSize: "13px",
-                      maxWidth: "80%",
-                      whiteSpace: "pre-line",
-                    }}
-                  >
-                    {m.texto}
-                  </div>
-                );
-              }
-              if (m.tipo === "resultados" && m.resultados) {
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "8px",
-                    }}
-                  >
-                    {m.resultados.map((e, j) => (
-                      <div
-                        key={j}
-                        style={{
-                          border: "1px solid #eee",
-                          borderRadius: "8px",
-                          overflow: "hidden",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {e.image && (
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {messages.map((message) => {
+                if (message.role === "results") {
+                  return (
+                    <div key={message.id} className="space-y-3">
+                      {message.results.map((business) => (
+                        <div
+                          key={business.id}
+                          className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm"
+                        >
                           <img
-                            src={e.image}
-                            alt={e.name}
-                            style={{
-                              width: "100%",
-                              height: "100px",
-                              objectFit: "cover",
-                            }}
+                            src={getBusinessImageSrc(business)}
+                            alt={business.name}
+                            className="h-28 w-full object-cover"
                           />
-                        )}
-                        <div style={{ padding: "8px" }}>
-                          <div style={{ fontWeight: "bold", fontSize: "13px" }}>
-                            🏪 {e.name}
-                          </div>
-                          <div style={{ color: "#666" }}>📂 {e.category}</div>
-                          <div style={{ color: "#666" }}>📍 {e.address}</div>
-                          {e.instagram && (
-                            <div style={{ color: "#e1306c" }}>
-                              📸 {e.instagram}
+                          <div className="space-y-2 p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="font-semibold text-foreground">
+                                  {business.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {business.categoryName}
+                                </p>
+                              </div>
+                              <Link
+                                href={`/businesses/${business.id}`}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-primary"
+                              >
+                                Ver
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </Link>
                             </div>
-                          )}
-                          {e.schedule && (
-                            <div style={{ color: "#666" }}>🕐 {e.schedule}</div>
-                          )}
+                            <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                              <span>{business.address}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  );
+                }
+
+                const isUser = message.role === "user";
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                        isUser
+                          ? "bg-primary text-white"
+                          : "bg-muted text-foreground"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
                   </div>
                 );
-              }
-              return null;
-            })}
-            {loading && (
-              <div style={{ color: "#aaa", fontSize: "13px" }}>
-                Bot escribiendo...
+              })}
+
+              {isLoading && (
+                <div className="flex items-center gap-2 rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Buscando opciones en el directorio...
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-border/60 bg-card p-3">
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Store className="h-4 w-4 text-primary" />
+                Recomendados del dia
               </div>
-            )}
+              <div className="space-y-2">
+                {popularBusinesses.map((business) => (
+                  <button
+                    key={business.id}
+                    type="button"
+                    onClick={() => submitQuery(business.name)}
+                    className="flex w-full items-center justify-between rounded-xl bg-muted/60 px-3 py-2 text-left transition hover:bg-muted"
+                  >
+                    <span className="text-sm font-medium text-foreground">
+                      {business.name}
+                    </span>
+                    <Search className="h-4 w-4 text-primary" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Input */}
-          <div
-            style={{
-              display: "flex",
-              gap: "6px",
-              padding: "10px",
-              borderTop: "1px solid #eee",
-            }}
-          >
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && enviar()}
-              placeholder="Ej: restaurantes, hoteles..."
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-                fontSize: "13px",
-              }}
-            />
-            <button
-              onClick={enviar}
-              disabled={loading}
-              style={{
-                padding: "8px 12px",
-                background: "#1a73e8",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: loading ? "not-allowed" : "pointer",
-                fontSize: "13px",
-              }}
-            >
-              {loading ? "..." : "➤"}
-            </button>
+          <div className="border-t border-border/60 bg-card/80 p-4">
+            <div className="flex items-center gap-2 rounded-2xl border border-border bg-background px-3 py-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <input
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    void submitQuery(input);
+                  }
+                }}
+                placeholder="Ej. pizzeria, hotel, gimnasio..."
+                className="h-8 flex-1 bg-transparent text-sm outline-none"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => void submitQuery(input)}
+                disabled={isLoading || !normalizeTerm(input)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label="Enviar consulta"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Botón flotante */}
       <button
-        onClick={() => setOpen(!open)}
-        style={{
-          width: "56px",
-          height: "56px",
-          borderRadius: "50%",
-          background: "#1a73e8",
-          color: "white",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "24px",
-          boxShadow: "0 4px 12px rgba(26,115,232,0.4)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginLeft: "auto",
-        }}
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="inline-flex items-center gap-3 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-primary/30 transition hover:-translate-y-0.5 hover:bg-primary/90"
       >
-        {open ? "✕" : "💬"}
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
+          <MessageCircle className="h-5 w-5" />
+        </div>
+        <div className="hidden text-left sm:block">
+          <div>Buscar negocios</div>
+          <div className="text-xs text-white/75">Asistente rapido</div>
+        </div>
       </button>
     </div>
   );

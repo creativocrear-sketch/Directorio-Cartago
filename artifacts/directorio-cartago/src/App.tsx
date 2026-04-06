@@ -18,6 +18,7 @@ import BusinessForm from "./pages/business-form";
 import AdminPanel from "./pages/admin-panel";
 import Plans from "./pages/plans";
 import Privacy from "./pages/privacy";
+import Terms from "./pages/terms";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/admin" component={AdminPanel} />
       <Route path="/plans" component={Plans} />
       <Route path="/privacidad" component={Privacy} />
+      <Route path="/terminos" component={Terms} />
 
       <Route component={NotFound} />
     </Switch>

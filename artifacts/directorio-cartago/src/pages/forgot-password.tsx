@@ -12,29 +12,32 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Ingresa un correo válido"),
+  email: z.string().email("Ingresa un correo valido"),
 });
 
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPassword() {
   const { toast } = useToast();
-  const { register, handleSubmit, formState: { errors } } =
-    useForm<ForgotPasswordValues>({
-      resolver: zodResolver(forgotPasswordSchema),
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+  });
 
   const { mutate, isPending } = useForgotPassword({
     mutation: {
       onSuccess: () => {
         toast({
           title: "Solicitud enviada",
-          description: "Si el correo existe, recibirás un enlace de recuperación.",
+          description: "Si el correo existe, recibiras instrucciones para recuperar el acceso.",
         });
       },
       onError: () => {
         toast({
-          title: "No se pudo enviar",
+          title: "No pudimos enviarlo",
           description: "Intenta de nuevo en unos minutos.",
           variant: "destructive",
         });
@@ -48,28 +51,26 @@ export default function ForgotPassword() {
 
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-muted/30">
-        <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl border border-border/50">
-          <div className="flex flex-col items-center mb-8 text-center">
-            <div className="w-12 h-12 rounded-xl bg-secondary text-secondary-foreground flex items-center justify-center mb-4 shadow-lg shadow-secondary/20">
-              <Mail className="w-6 h-6" />
+      <div className="min-h-[calc(100vh-4rem)] bg-muted/30 px-4 py-12">
+        <div className="mx-auto max-w-md rounded-[2rem] border border-border/60 bg-card p-8 shadow-xl">
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+              <Mail className="h-6 w-6" />
             </div>
-            <h1 className="text-3xl font-display font-bold text-foreground">
-              Recuperar acceso
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Te enviaremos instrucciones para restablecer tu contraseña.
+            <h1 className="text-3xl font-display font-bold">Recuperar acceso</h1>
+            <p className="mt-2 text-muted-foreground">
+              Escribe tu correo y te enviaremos indicaciones para restablecer la cuenta.
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="email">Correo electronico</Label>
               <Input
                 id="email"
                 type="email"
                 {...register("email")}
-                className="rounded-xl h-12 bg-background focus:bg-white"
+                className="h-12 rounded-xl"
                 placeholder="tu@correo.com"
               />
               {errors.email && (
@@ -77,18 +78,14 @@ export default function ForgotPassword() {
               )}
             </div>
 
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20"
-            >
-              {isPending ? "Enviando..." : "Enviar enlace"}
+            <Button type="submit" disabled={isPending} className="h-12 w-full rounded-xl">
+              {isPending ? "Enviando..." : "Enviar instrucciones"}
             </Button>
           </form>
 
-          <p className="text-center mt-8 text-sm text-muted-foreground">
-            <Link href="/login" className="text-primary font-bold hover:underline">
-              Volver a iniciar sesión
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            <Link href="/login" className="font-semibold text-primary hover:underline">
+              Volver a iniciar sesion
             </Link>
           </p>
         </div>

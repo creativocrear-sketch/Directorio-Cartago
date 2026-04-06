@@ -2,137 +2,235 @@ import React from "react";
 import { Layout } from "@/components/layout";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
-import { useGetSubscriptionPlans, useSubscribe } from "@workspace/api-client-react";
-import { Check, Crown, AlertCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useGetSubscriptionPlans, useSubscribe } from "@workspace/api-client-react";
+import { AlertCircle, Check, Crown, MapPinned, PhoneCall, Rocket } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const freeFeatures = [
+  "Ficha visible en el directorio",
+  "Nombre, descripcion y categoria",
+  "Imagen principal del negocio",
+  "Presencia basica en resultados",
+];
+
+const premiumFeatures = [
+  "Todo lo del plan basico",
+  "Hasta 5 imagenes por negocio",
+  "Telefono y WhatsApp visibles",
+  "Enlaces a sitio web y redes sociales",
+  "Mapa y horario del local",
+  "Mayor visibilidad en el directorio",
+];
+
+const fallbackPlans = [
+  {
+    id: 9001,
+    name: "Premium Mensual",
+    description: "Ideal para empezar a destacar tu negocio cada mes.",
+    price: 9900,
+    durationDays: 30,
+    isActive: true,
+  },
+  {
+    id: 9002,
+    name: "Premium Trimestral",
+    description: "Mas continuidad y mejor valor para negocios activos.",
+    price: 24900,
+    durationDays: 90,
+    isActive: true,
+  },
+];
 
 export default function Plans() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const { data: plans, isLoading } = useGetSubscriptionPlans();
-  
+
+  const availablePlans =
+    plans?.filter((plan) => plan.isActive).length
+      ? plans.filter((plan) => plan.isActive)
+      : fallbackPlans;
+
   const { mutate: subscribeMutate, isPending } = useSubscribe({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Suscripción exitosa", description: "Ahora tienes acceso Premium." });
-        window.location.reload(); // Quick way to refresh user context
+        toast({
+          title: "Suscripcion activada",
+          description: "Tu cuenta ya tiene acceso Premium.",
+        });
+        window.location.reload();
       },
       onError: () => {
-        toast({ title: "Error", description: "No se pudo procesar la suscripción.", variant: "destructive" });
-      }
-    }
+        toast({
+          title: "No se pudo completar",
+          description: "Intenta de nuevo en unos minutos.",
+          variant: "destructive",
+        });
+      },
+    },
   });
 
   const handleSubscribe = (planId: number) => {
     if (!isAuthenticated) {
-      toast({ title: "Inicia sesión", description: "Debes iniciar sesión para suscribirte." });
+      toast({
+        title: "Inicia sesion",
+        description: "Debes iniciar sesion para activar un plan.",
+      });
       return;
     }
-    // Simulate payment reference
-    subscribeMutate({ data: { planId, paymentReference: `SIM-${Date.now()}` } });
+
+    subscribeMutate({
+      data: { planId, paymentReference: `SIM-${Date.now()}` },
+    });
   };
-
-  const freeFeatures = [
-    "Aparecer en el directorio",
-    "Nombre y descripción básica",
-    "1 imagen principal",
-    "Enlace a Instagram"
-  ];
-
-  const premiumFeatures = [
-    "Todo lo del plan Gratis",
-    "Hasta 5 imágenes en galería",
-    "Número de teléfono y WhatsApp directo",
-    "Mapa interactivo de Google",
-    "Enlaces a todas las redes y web",
-    "Insignia DESTACADO",
-    "Prioridad en resultados de búsqueda"
-  ];
 
   return (
     <Layout>
-      <div className="bg-foreground text-background py-20 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop')] opacity-10 bg-cover bg-center mix-blend-overlay" />
+      <section className="relative overflow-hidden bg-foreground py-20 text-background">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1600&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-screen" />
         <div className="container relative z-10 mx-auto px-4">
-          <Crown className="w-16 h-16 text-secondary mx-auto mb-6" />
-          <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">Planes para tu Negocio</h1>
-          <p className="text-xl text-background/80 max-w-2xl mx-auto">
-            Elige el plan que mejor se adapte a tus necesidades. Atrae más clientes destacando tu negocio en Cartago.
-          </p>
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium">
+              <Crown className="h-4 w-4 text-secondary" />
+              Impulsa tu negocio en Cartago
+            </div>
+            <h1 className="mb-4 text-4xl font-display font-bold md:text-5xl">
+              Planes pensados para que tu negocio destaque
+            </h1>
+            <p className="text-lg text-background/80">
+              Mejora tu visibilidad, muestra mas informacion y convierte mas visitas
+              en clientes reales desde el directorio.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 py-16 -mt-10 relative z-20">
-        
+      <section className="container relative z-10 mx-auto -mt-10 px-4 pb-16">
         {user?.hasActiveSubscription && (
-          <Alert className="mb-12 max-w-3xl mx-auto bg-emerald-50 border-emerald-200 text-emerald-800">
+          <Alert className="mx-auto mb-10 max-w-3xl border-emerald-200 bg-emerald-50 text-emerald-900">
             <AlertCircle className="h-5 w-5 text-emerald-600" />
-            <AlertDescription className="font-medium ml-2">
-              Ya tienes una suscripción Premium activa. ¡Disfruta de todos los beneficios!
+            <AlertDescription>
+              Ya tienes una suscripcion Premium activa. Puedes seguir editando y
+              aprovechando todos sus beneficios.
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto justify-center">
-          
-          {/* Free Plan */}
-          <div className="bg-card rounded-3xl border border-border p-8 shadow-lg flex flex-col mt-4">
-            <h3 className="text-2xl font-bold mb-2">Básico</h3>
-            <p className="text-muted-foreground text-sm mb-6">Para empezar a tener presencia online.</p>
-            <div className="text-4xl font-display font-bold mb-8">Gratis</div>
-            
-            <ul className="space-y-4 mb-8 flex-1">
-              {freeFeatures.map((feat, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
-                  <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                  <span>{feat}</span>
+        <div className="mb-10 grid gap-4 md:grid-cols-3">
+          <div className="rounded-3xl border border-border/70 bg-card p-6 shadow-sm">
+            <Rocket className="mb-4 h-8 w-8 text-primary" />
+            <h2 className="mb-2 text-lg font-semibold">Mas visibilidad</h2>
+            <p className="text-sm text-muted-foreground">
+              Muestra mejor tu negocio y gana protagonismo frente a la competencia.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-border/70 bg-card p-6 shadow-sm">
+            <PhoneCall className="mb-4 h-8 w-8 text-primary" />
+            <h2 className="mb-2 text-lg font-semibold">Contactos directos</h2>
+            <p className="text-sm text-muted-foreground">
+              Activa telefono, WhatsApp y enlaces externos para cerrar mas ventas.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-border/70 bg-card p-6 shadow-sm">
+            <MapPinned className="mb-4 h-8 w-8 text-primary" />
+            <h2 className="mb-2 text-lg font-semibold">Ficha mas completa</h2>
+            <p className="text-sm text-muted-foreground">
+              Comparte ubicacion, horarios, imagenes y datos clave para generar confianza.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid max-w-6xl gap-8 lg:grid-cols-3">
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-lg">
+            <div className="mb-6">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Basico
+              </p>
+              <h3 className="text-3xl font-display font-bold">Gratis</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Para empezar a aparecer en el directorio y validar tu presencia local.
+              </p>
+            </div>
+
+            <ul className="space-y-4">
+              {freeFeatures.map((feature) => (
+                <li key={feature} className="flex items-start gap-3 text-sm">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                  <span>{feature}</span>
                 </li>
               ))}
             </ul>
-            
-            <Button variant="outline" className="w-full rounded-xl h-12" disabled>Plan Actual</Button>
+
+            <Button variant="outline" className="mt-8 h-12 w-full rounded-xl" disabled>
+              Plan actual
+            </Button>
           </div>
 
-          {/* Premium Plans from API */}
           {isLoading ? (
-            <div className="bg-muted animate-pulse rounded-3xl h-[500px]" />
+            <>
+              <div className="h-[34rem] animate-pulse rounded-3xl bg-muted" />
+              <div className="h-[34rem] animate-pulse rounded-3xl bg-muted" />
+            </>
           ) : (
-            plans?.filter(p => p.isActive).map((plan) => (
-              <div key={plan.id} className="bg-gradient-to-b from-primary/10 to-background rounded-3xl border-2 border-primary/50 p-8 shadow-xl relative flex flex-col transform md:-translate-y-4">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">
-                  Recomendado
+            availablePlans.map((plan, index) => (
+              <div
+                key={plan.id}
+                className={`relative rounded-3xl border p-8 shadow-xl ${
+                  index === 0
+                    ? "border-primary/50 bg-gradient-to-b from-primary/10 to-background"
+                    : "border-border bg-card"
+                }`}
+              >
+                {index === 0 && (
+                  <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-white shadow-md">
+                    Recomendado
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <h3 className="text-2xl font-display font-bold text-foreground">
+                    {plan.name}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {plan.description}
+                  </p>
                 </div>
-                
-                <h3 className="text-2xl font-bold text-primary mb-2">{plan.name}</h3>
-                <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
-                <div className="text-4xl font-display font-bold mb-2">
-                  ${plan.price.toLocaleString('es-CO')}
-                  <span className="text-lg text-muted-foreground font-normal"> / {plan.durationDays} días</span>
+
+                <div className="mb-8">
+                  <div className="text-4xl font-display font-bold text-foreground">
+                    ${plan.price.toLocaleString("es-CO")}
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Vigencia de {plan.durationDays} dias
+                  </p>
                 </div>
-                
-                <ul className="space-y-4 mb-8 flex-1 mt-6">
-                  {premiumFeatures.map((feat, i) => (
-                    <li key={i} className="flex items-start gap-3 text-sm">
-                      <Check className="w-5 h-5 text-primary shrink-0" />
-                      <span className="font-medium">{feat}</span>
+
+                <ul className="space-y-4">
+                  {premiumFeatures.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3 text-sm">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-                
-                <Button 
+
+                <Button
                   onClick={() => handleSubscribe(plan.id)}
                   disabled={isPending || user?.hasActiveSubscription}
-                  className="w-full rounded-xl h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25"
+                  className="mt-8 h-12 w-full rounded-xl text-base font-semibold"
                 >
-                  {isPending ? "Procesando..." : user?.hasActiveSubscription ? "Ya eres Premium" : "Obtener Premium"}
+                  {isPending
+                    ? "Procesando..."
+                    : user?.hasActiveSubscription
+                      ? "Tu cuenta ya es Premium"
+                      : "Activar plan"}
                 </Button>
               </div>
             ))
           )}
-
         </div>
-      </div>
+      </section>
     </Layout>
   );
 }

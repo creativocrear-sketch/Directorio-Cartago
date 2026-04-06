@@ -11,12 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus } from "lucide-react";
+import { Store, UserPlus } from "lucide-react";
 
 const registerSchema = z.object({
-  name: z.string().min(2, "El nombre es muy corto"),
-  email: z.string().email("Correo inválido"),
-  password: z.string().min(6, "Mínimo 6 caracteres"),
+  name: z.string().min(2, "Escribe un nombre mas claro"),
+  email: z.string().email("Ingresa un correo valido"),
+  password: z.string().min(6, "La contrasena debe tener al menos 6 caracteres"),
   phone: z.string().optional(),
   role: z.enum(["visitor", "business_owner"]),
 });
@@ -44,160 +44,192 @@ export default function Register() {
       onSuccess: (data) => {
         setAuthContext(data.token, data.user);
         toast({
-          title: "¡Cuenta creada!",
+          title: "Cuenta creada",
           description: "Bienvenido a Directorio Cartago.",
         });
         setLocation(data.user.role === "business_owner" ? "/my-businesses" : "/");
       },
       onError: (error) => {
         toast({
-          title: "Error de registro",
-          description: error.response?.data?.message || "Hubo un problema",
+          title: "No pudimos crear tu cuenta",
+          description:
+            error.response?.data?.message || "Intenta de nuevo con otros datos.",
           variant: "destructive",
         });
       },
     },
   });
 
+  const selectedRole = watch("role");
+
   const onSubmit = (data: RegisterFormValues) => {
     registerMutation({ data });
   };
 
-  const selectedRole = watch("role");
-
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-muted/30 py-12">
-        <div className="w-full max-w-xl bg-card rounded-3xl p-8 shadow-xl border border-border/50 relative overflow-hidden">
-          <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 rounded-xl bg-secondary text-secondary-foreground flex items-center justify-center mb-4 shadow-lg shadow-secondary/20">
-              <UserPlus className="w-6 h-6" />
-            </div>
-            <h1 className="text-3xl font-display font-bold text-foreground">
-              Crear Cuenta
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Únete a la red más grande de Cartago
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="p-4 bg-muted/50 rounded-2xl border border-border">
-              <Label className="text-base font-bold mb-3 block">
-                ¿Qué tipo de cuenta deseas?
-              </Label>
-              <RadioGroup
-                value={selectedRole}
-                onValueChange={(value) => setValue("role", value as RegisterFormValues["role"])}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
-              >
-                <div>
-                  <RadioGroupItem value="visitor" id="visitor" className="peer sr-only" />
-                  <Label
-                    htmlFor="visitor"
-                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent/5 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
-                  >
-                    <span className="font-bold text-lg mb-1">Visitante</span>
-                    <span className="text-xs text-muted-foreground text-center">
-                      Para buscar y calificar negocios
-                    </span>
-                  </Label>
+      <div className="min-h-[calc(100vh-4rem)] bg-muted/30 px-4 py-12">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-[2rem] bg-card p-8 shadow-xl border border-border/60">
+              <div className="mb-8">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+                  <UserPlus className="h-6 w-6" />
                 </div>
-                <div>
-                  <RadioGroupItem
-                    value="business_owner"
-                    id="owner"
-                    className="peer sr-only"
+                <h1 className="text-3xl font-display font-bold">Crear cuenta</h1>
+                <p className="mt-2 text-muted-foreground">
+                  Elige el tipo de perfil y empieza a usar el directorio.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="rounded-2xl border border-border bg-muted/40 p-4">
+                  <Label className="mb-3 block text-base font-semibold">
+                    Tipo de cuenta
+                  </Label>
+                  <RadioGroup
+                    value={selectedRole}
+                    onValueChange={(value) =>
+                      setValue("role", value as RegisterFormValues["role"])
+                    }
+                    className="grid gap-4 md:grid-cols-2"
+                  >
+                    <div>
+                      <RadioGroupItem value="visitor" id="visitor" className="peer sr-only" />
+                      <Label
+                        htmlFor="visitor"
+                        className="flex cursor-pointer flex-col rounded-2xl border-2 border-muted bg-background p-4 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
+                      >
+                        <span className="font-semibold">Visitante</span>
+                        <span className="mt-1 text-xs text-muted-foreground">
+                          Para explorar negocios, guardar referencias y contactar comercios.
+                        </span>
+                      </Label>
+                    </div>
+                    <div>
+                      <RadioGroupItem
+                        value="business_owner"
+                        id="business_owner"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="business_owner"
+                        className="flex cursor-pointer flex-col rounded-2xl border-2 border-muted bg-background p-4 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
+                      >
+                        <span className="font-semibold">Negocio</span>
+                        <span className="mt-1 text-xs text-muted-foreground">
+                          Para publicar tu empresa y administrar tu ficha comercial.
+                        </span>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nombre completo</Label>
+                    <Input
+                      id="name"
+                      {...register("name")}
+                      className="h-11 rounded-xl"
+                      placeholder="Nombre y apellido"
+                    />
+                    {errors.name && (
+                      <p className="text-sm text-destructive">{errors.name.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefono</Label>
+                    <Input
+                      id="phone"
+                      {...register("phone")}
+                      className="h-11 rounded-xl"
+                      placeholder="300 000 0000"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Correo electronico</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register("email")}
+                    className="h-11 rounded-xl"
+                    placeholder="tu@correo.com"
                   />
-                  <Label
-                    htmlFor="owner"
-                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent/5 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
-                  >
-                    <span className="font-bold text-lg mb-1">Negocio</span>
-                    <span className="text-xs text-muted-foreground text-center">
-                      Para publicar y gestionar tu empresa
-                    </span>
-                  </Label>
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email.message}</p>
+                  )}
                 </div>
-              </RadioGroup>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Contrasena</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    {...register("password")}
+                    className="h-11 rounded-xl"
+                    placeholder="Minimo 6 caracteres"
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password.message}</p>
+                  )}
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Al registrarte aceptas nuestra{" "}
+                  <Link href="/privacidad" className="text-primary hover:underline">
+                    politica de privacidad
+                  </Link>{" "}
+                  y los{" "}
+                  <Link href="/terminos" className="text-primary hover:underline">
+                    terminos del servicio
+                  </Link>
+                  .
+                </p>
+
+                <Button type="submit" disabled={isPending} className="h-12 w-full rounded-xl">
+                  {isPending ? "Creando cuenta..." : "Crear mi cuenta"}
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Ya tienes cuenta?{" "}
+                <Link href="/login" className="font-semibold text-primary hover:underline">
+                  Inicia sesion aqui
+                </Link>
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre completo</Label>
-                <Input
-                  id="name"
-                  {...register("name")}
-                  className="rounded-xl h-11"
-                  placeholder="Juan Pérez"
-                />
-                {errors.name && (
-                  <p className="text-sm text-destructive">{errors.name.message}</p>
-                )}
+            <div className="hidden rounded-[2rem] bg-gradient-to-br from-foreground to-foreground/90 p-10 text-white shadow-2xl lg:block">
+              <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+                <Store className="h-7 w-7" />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono (opcional)</Label>
-                <Input
-                  id="phone"
-                  {...register("phone")}
-                  className="rounded-xl h-11"
-                  placeholder="310 000 0000"
-                />
+              <h2 className="mb-4 text-4xl font-display font-bold">
+                Publica tu negocio y gana presencia local
+              </h2>
+              <p className="max-w-md text-white/80">
+                Crea tu cuenta, registra tu empresa y empieza a aparecer en las
+                busquedas del directorio comercial de Cartago.
+              </p>
+              <div className="mt-10 space-y-4">
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <p className="font-semibold">Mas alcance</p>
+                  <p className="text-sm text-white/75">
+                    Tus clientes te encuentran mas facil por categoria y servicio.
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <p className="font-semibold">Ficha profesional</p>
+                  <p className="text-sm text-white/75">
+                    Muestra imagenes, horarios, ubicacion y canales de contacto.
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email")}
-                className="rounded-xl h-11"
-                placeholder="tu@correo.com"
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register("password")}
-                className="rounded-xl h-11"
-                placeholder="Mínimo 6 caracteres"
-              />
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
-              )}
-            </div>
-
-            <div className="text-xs text-muted-foreground px-1">
-              Al registrarte aceptas nuestra{" "}
-              <Link href="/privacidad" className="text-primary hover:underline">
-                Política de Privacidad
-              </Link>
-              .
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20"
-            >
-              {isPending ? "Creando cuenta..." : "Crear mi cuenta"}
-            </Button>
-          </form>
-
-          <p className="text-center mt-8 text-sm text-muted-foreground">
-            ¿Ya tienes cuenta?{" "}
-            <Link href="/login" className="text-primary font-bold hover:underline">
-              Inicia sesión aquí
-            </Link>
-          </p>
+          </div>
         </div>
       </div>
     </Layout>
