@@ -97,7 +97,7 @@ export async function seedIfEmpty(force = false) {
       { name: "Premium Mensual", description: "Información completa + mapa + redes sociales + destacado", price: "9900", durationDays: 30, isActive: true },
       { name: "Premium Trimestral", description: "Todo Premium por 3 meses con 16% de descuento", price: "24900", durationDays: 90, isActive: true },
       { name: "Premium Anual", description: "Todo Premium por 1 año con 33% de descuento", price: "79900", durationDays: 365, isActive: true },
-    ]);
+    ].map((plan) => ({ ...plan, price: Number(plan.price) })));
     console.log("[seed] Planes creados");
   }
 
@@ -197,7 +197,7 @@ export async function seedIfEmpty(force = false) {
       await db.insert(businessImagesTable).values({
         businessId: b.id,
         url: BUSINESS_IMAGES[biz.name] || biz.image,
-        isPrimary: true,
+        isPrimary: 1,
       });
 
       inserted++;
