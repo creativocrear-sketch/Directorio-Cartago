@@ -19,5 +19,5 @@ export const config = {
 
 export default async function handler(req: any, res: any) {
   await ensureSeeded();
-  return app.handle(req, res);
+  return (app as unknown as (req: any, res: any) => unknown)(req, res);
 }
