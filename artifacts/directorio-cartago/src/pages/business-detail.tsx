@@ -90,18 +90,10 @@ export default function BusinessDetail() {
   const instagramHandle = getInstagramHandle(currentBusiness.instagram);
   const facebookUrl = normalizeFacebookUrl(currentBusiness.facebook);
   const websiteUrl = normalizeWebsiteUrl(currentBusiness.website);
-  const usingFallback = !!fallbackBusiness && (!business || isError);
-
   return (
     <Layout>
       <div className="bg-muted/20 border-b border-border/50">
         <div className="container mx-auto px-4 py-8">
-          {usingFallback && (
-            <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
-              Mostrando la ficha local de este negocio mientras la API termina de responder.
-            </div>
-          )}
-
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="w-full lg:w-1/2 xl:w-7/12">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-border/50 shadow-lg mb-4 bg-black">
