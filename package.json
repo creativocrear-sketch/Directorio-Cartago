@@ -11,6 +11,8 @@
   },
   "private": true,
   "optionalDependencies": {
+    "lightningcss-win32-x64-msvc": "1.31.1",
+    "lightningcss-linux-x64-gnu": "1.31.1",
     "@rollup/rollup-linux-x64-gnu": "4.59.0",
     "@rollup/rollup-win32-x64-msvc": "4.59.0"
   },
