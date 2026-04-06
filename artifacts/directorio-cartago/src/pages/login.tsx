@@ -89,6 +89,25 @@ export default function Login() {
     loginMutation({ data });
   };
 
+  const loginAsDemo = (type: "admin" | "premium") => {
+    if (type === "admin") {
+      setAuthContext(`demo-token:${DEMO_ADMIN_USER.email}`, DEMO_ADMIN_USER);
+      toast({
+        title: "Sesion demo iniciada",
+        description: "Entraste con el perfil administrador de demostracion.",
+      });
+      setLocation("/admin");
+      return;
+    }
+
+    setAuthContext(`demo-token:${DEMO_PREMIUM_USER.email}`, DEMO_PREMIUM_USER);
+    toast({
+      title: "Sesion demo iniciada",
+      description: "Entraste con el perfil Premium de demostracion.",
+    });
+    setLocation("/my-businesses");
+  };
+
   return (
     <Layout>
       <div className="min-h-[calc(100vh-4rem)] bg-muted/30 px-4 py-12">
@@ -132,6 +151,33 @@ export default function Login() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                <p className="mb-3 text-sm font-semibold text-foreground">
+                  Acceso demo rapido
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => loginAsDemo("admin")}
+                  >
+                    Entrar como Admin
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => loginAsDemo("premium")}
+                  >
+                    Entrar como Premium
+                  </Button>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Si estos botones no aparecen en tu web, el deploy todavia no esta usando la version nueva.
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Correo electronico</Label>
                 <Input
