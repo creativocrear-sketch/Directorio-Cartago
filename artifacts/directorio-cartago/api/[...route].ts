@@ -1,11 +1,11 @@
-import app from "../../api-server/src/app";
-import { seedIfEmpty } from "../../api-server/src/seed";
+import app from "../../api-server/src/app.js";
+import { seedIfEmpty } from "../../api-server/src/seed.js";
 
 let seedPromise: Promise<unknown> | null = null;
 
 async function ensureSeeded() {
   if (!seedPromise) {
-    seedPromise = seedIfEmpty().catch((error) => {
+    seedPromise = seedIfEmpty().catch((error: unknown) => {
       console.error("[vercel-api] Seed failed:", error);
     });
   }
