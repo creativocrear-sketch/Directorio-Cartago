@@ -34,6 +34,8 @@ import {
   X,
   Trash2,
   ShieldCheck,
+  Search,
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fallbackBusinesses, fallbackCategories } from "@/lib/fallback-directory";
@@ -82,6 +84,28 @@ export default function AdminPanel() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        <div className="mb-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-3 flex items-center gap-2 font-semibold text-foreground">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Centro de control
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Desde aqui puedes revisar actividad, usuarios, categorias y fichas visibles
+              del directorio. El modo demo te deja explorar la estructura sin alterar datos.
+            </p>
+          </div>
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <div className="mb-3 flex items-center gap-2 font-semibold text-foreground">
+              <Search className="h-5 w-5 text-primary" />
+              Enfoque sugerido
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Revisa primero pendientes, luego usuarios con Premium y por ultimo categorias
+              duplicadas o poco claras para mantener el directorio ordenado.
+            </p>
+          </div>
+        </div>
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="mb-8 flex h-14 justify-start overflow-x-auto rounded-xl bg-muted/50 p-1 md:justify-center">
             <TabsTrigger value="dashboard" className="h-10 rounded-lg px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"><LayoutDashboard className="mr-2 h-4 w-4" /> Resumen</TabsTrigger>
