@@ -132,18 +132,25 @@ export default function Chatbot() {
   );
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-5 sm:right-5">
       {open && (
-        <div className="w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-3xl border border-border/70 bg-background/95 shadow-2xl backdrop-blur-xl">
-          <div className="border-b border-border/60 bg-gradient-to-r from-primary to-accent px-5 py-4 text-white">
+        <>
+          <button
+            type="button"
+            aria-label="Cerrar asistente"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 -z-10 bg-black/20 backdrop-blur-[1px]"
+          />
+          <div className="w-[min(22rem,calc(100vw-1rem))] overflow-hidden rounded-[1.75rem] border border-border/70 bg-background/95 shadow-2xl backdrop-blur-xl sm:w-[21rem]">
+          <div className="border-b border-border/60 bg-gradient-to-r from-primary to-accent px-4 py-3 text-white">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
-                  <Bot className="h-5 w-5" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15">
+                  <Bot className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <p className="font-semibold">Asistente Cartago</p>
-                  <p className="text-sm text-white/80">
+                  <p className="font-semibold leading-none">Asistente Cartago</p>
+                  <p className="mt-1 text-xs text-white/80">
                     Busca negocios y servicios al instante
                   </p>
                 </div>
@@ -151,16 +158,16 @@ export default function Chatbot() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-full bg-white/10 p-2 transition hover:bg-white/20"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
                 aria-label="Cerrar asistente"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          <div className="max-h-[28rem] overflow-y-auto px-4 py-4">
-            <div className="mb-4 rounded-2xl border border-primary/15 bg-primary/5 p-3">
+          <div className="max-h-[min(60vh,24rem)] overflow-y-auto px-3 py-3 sm:max-h-[23rem] sm:px-4 sm:py-4">
+            <div className="mb-3 rounded-2xl border border-primary/15 bg-primary/5 p-3">
               <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Sparkles className="h-4 w-4 text-primary" />
                 Busquedas rapidas
@@ -192,7 +199,7 @@ export default function Chatbot() {
                           <img
                             src={getBusinessImageSrc(business)}
                             alt={business.name}
-                            className="h-28 w-full object-cover"
+                            className="h-24 w-full object-cover"
                           />
                           <div className="space-y-2 p-3">
                             <div className="flex items-start justify-between gap-3">
@@ -250,7 +257,7 @@ export default function Chatbot() {
               )}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-border/60 bg-card p-3">
+            <div className="mt-4 rounded-2xl border border-border/60 bg-card p-3">
               <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Store className="h-4 w-4 text-primary" />
                 Recomendados del dia
@@ -300,6 +307,7 @@ export default function Chatbot() {
             </div>
           </div>
         </div>
+        </>
       )}
 
       <button
