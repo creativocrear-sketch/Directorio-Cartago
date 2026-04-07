@@ -174,7 +174,7 @@ export default function Login() {
                   </Button>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Si estos botones no aparecen en tu web, el deploy todavia no esta usando la version nueva.
+                  El acceso Premium demo ya permite crear, editar y borrar negocios. El acceso Admin demo ya permite revisar y cambiar sus estados.
                 </p>
               </div>
 

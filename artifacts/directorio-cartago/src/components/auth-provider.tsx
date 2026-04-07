@@ -29,6 +29,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isDemoSession: boolean;
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
@@ -102,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading: !!token && !isDemoSession && isLoading,
         isAuthenticated: !!user,
+        isDemoSession,
         token,
         login,
         logout,

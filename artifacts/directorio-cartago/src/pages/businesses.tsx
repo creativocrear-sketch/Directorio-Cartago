@@ -17,6 +17,7 @@ import {
   fallbackCategories,
   getFallbackBusinesses,
 } from "@/lib/fallback-directory";
+import { useDemoBusinesses } from "@/lib/demo-businesses";
 
 export default function Businesses() {
   const searchString = useSearch();
@@ -29,6 +30,7 @@ export default function Businesses() {
   const [page, setPage] = useState(1);
 
   const { data: categories } = useGetCategories();
+  const { businesses: demoBusinesses } = useDemoBusinesses();
   const { data, isLoading, isError } = useGetBusinesses({
     status: "approved",
     search: searchTerm || undefined,
@@ -49,8 +51,48 @@ export default function Businesses() {
   );
 
   const visibleCategories = categories?.length ? categories : fallbackCategories;
-  const listData =
+  const approvedDemoBusinesses = useMemo(
+    () =>
+      demoBusinesses.filter((business) => {
+        if (business.status !== "approved") return false;
+        if (
+          categoryId !== "all" &&
+          business.categoryId !== Number(categoryId)
+        ) {
+          return false;
+        }
+        if (!searchTerm.trim()) return true;
+
+        const haystack = [
+          business.name,
+          business.description,
+          business.categoryName,
+          business.address,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return haystack.includes(searchTerm.trim().toLowerCase());
+      }),
+    [categoryId, demoBusinesses, searchTerm],
+  );
+  const sourceListData =
     data?.businesses && data.businesses.length > 0 ? data : fallbackData;
+  const mergedBusinesses = [
+    ...approvedDemoBusinesses,
+    ...sourceListData.businesses,
+  ].filter(
+    (business, index, array) =>
+      array.findIndex((candidate) => candidate.id === business.id) === index,
+  );
+  const listData = {
+    ...sourceListData,
+    businesses: mergedBusinesses,
+    total: mergedBusinesses.length,
+    totalPages: 1,
+    page: 1,
+  };
   const usingFallback =
     !!fallbackData.businesses.length &&
     (!data || !data.businesses.length || isError);

@@ -26,6 +26,7 @@ import {
   normalizeWebsiteUrl,
 } from "@/lib/business-media";
 import { getFallbackBusinessById } from "@/lib/fallback-directory";
+import { getDirectoryBusinessById } from "@/lib/demo-businesses";
 
 export default function BusinessDetail() {
   const { id } = useParams();
@@ -33,7 +34,7 @@ export default function BusinessDetail() {
   const { user } = useAuth();
   const { data: business, isLoading, isError } = useGetBusiness(numericId);
   const fallbackBusiness = useMemo(
-    () => getFallbackBusinessById(numericId),
+    () => getDirectoryBusinessById(numericId) ?? getFallbackBusinessById(numericId),
     [numericId],
   );
   const currentBusiness = business ?? fallbackBusiness;

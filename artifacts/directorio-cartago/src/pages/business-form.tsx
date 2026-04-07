@@ -22,6 +22,9 @@ import {
   useGetCategories,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth-provider";
+import { fallbackCategories } from "@/lib/fallback-directory";
+import { getDirectoryBusinessById, useDemoBusinesses } from "@/lib/demo-businesses";
 import {
   Store,
   MapPin,
@@ -32,6 +35,7 @@ import {
   Sparkles,
   Clock3,
   Globe,
+  ShieldCheck,
 } from "lucide-react";
 
 const bizSchema = z.object({
@@ -46,7 +50,14 @@ const bizSchema = z.object({
   googleMapsUrl: z.string().optional(),
   schedule: z.string().optional(),
   categoryId: z.coerce.number().min(1, "Selecciona una categoria"),
-  images: z.array(z.object({ url: z.string().url("Ingresa una URL valida") })),
+  images: z.array(
+    z.object({
+      url: z
+        .string()
+        .optional()
+        .refine((value) => !value || /^https?:\/\//.test(value), "Ingresa una URL valida"),
+    }),
+  ),
 });
 
 type BizFormValues = z.infer<typeof bizSchema>;
@@ -61,12 +72,15 @@ const BUSINESS_TIPS = [
 export default function BusinessForm() {
   const { id } = useParams();
   const isEdit = Boolean(id);
+  const numericId = Number(id);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isDemoSession } = useAuth();
+  const { businesses: demoBusinesses, createBusiness, updateBusiness } = useDemoBusinesses();
 
   const { data: categories } = useGetCategories();
-  const { data: existingBiz, isLoading: loadingBiz } = useGetBusiness(Number(id), {
-    query: { enabled: isEdit },
+  const { data: existingBiz, isLoading: loadingBiz } = useGetBusiness(numericId, {
+    query: { enabled: isEdit && !isDemoSession },
   });
 
   const form = useForm<BizFormValues>({
@@ -87,35 +101,38 @@ export default function BusinessForm() {
     },
   });
 
-  const {
-    fields: imageFields,
-    append,
-    remove,
-  } = useFieldArray({
+  const { fields: imageFields, append, remove } = useFieldArray({
     control: form.control,
     name: "images",
   });
 
+  const visibleCategories = categories?.length ? categories : fallbackCategories;
+  const demoBiz = useMemo(() => {
+    if (!isEdit || !isDemoSession) return null;
+    return demoBusinesses.find((business) => business.id === numericId) ?? getDirectoryBusinessById(numericId);
+  }, [demoBusinesses, isDemoSession, isEdit, numericId]);
+  const currentBiz = isDemoSession ? demoBiz : existingBiz;
+
   useEffect(() => {
-    if (!isEdit || !existingBiz) return;
+    if (!isEdit || !currentBiz) return;
 
     form.reset({
-      name: existingBiz.name,
-      address: existingBiz.address,
-      description: existingBiz.description || "",
-      phone: existingBiz.phone || "",
-      whatsapp: existingBiz.whatsapp || "",
-      instagram: existingBiz.instagram || "",
-      facebook: existingBiz.facebook || "",
-      website: existingBiz.website || "",
-      googleMapsUrl: existingBiz.googleMapsUrl || "",
-      schedule: existingBiz.schedule || "",
-      categoryId: existingBiz.categoryId || 0,
-      images: existingBiz.images?.length
-        ? existingBiz.images.map((img) => ({ url: img.url }))
+      name: currentBiz.name,
+      address: currentBiz.address,
+      description: currentBiz.description || "",
+      phone: currentBiz.phone || "",
+      whatsapp: currentBiz.whatsapp || "",
+      instagram: currentBiz.instagram || "",
+      facebook: currentBiz.facebook || "",
+      website: currentBiz.website || "",
+      googleMapsUrl: currentBiz.googleMapsUrl || "",
+      schedule: currentBiz.schedule || "",
+      categoryId: currentBiz.categoryId || 0,
+      images: currentBiz.images?.length
+        ? currentBiz.images.map((img) => ({ url: img.url }))
         : [{ url: "" }],
     });
-  }, [existingBiz, form, isEdit]);
+  }, [currentBiz, form, isEdit]);
 
   const { mutate: createMutate, isPending: creating } = useCreateBusiness({
     mutation: {
@@ -161,8 +178,8 @@ export default function BusinessForm() {
   const categoryId = form.watch("categoryId");
 
   const selectedCategory = useMemo(
-    () => categories?.find((category) => category.id === categoryId),
-    [categories, categoryId],
+    () => visibleCategories.find((category) => category.id === categoryId),
+    [visibleCategories, categoryId],
   );
 
   const onSubmit = (data: BizFormValues) => {
@@ -173,15 +190,33 @@ export default function BusinessForm() {
         .filter((url) => url.length > 0),
     };
 
+    if (isDemoSession && user) {
+      if (isEdit) {
+        updateBusiness(numericId, payload, user);
+        toast({
+          title: "Cambios guardados",
+          description: "La ficha demo se actualizo correctamente.",
+        });
+      } else {
+        createBusiness(payload, user);
+        toast({
+          title: "Negocio creado",
+          description: "Tu ficha demo ya aparece en Mis Negocios y en el directorio.",
+        });
+      }
+      setLocation("/my-businesses");
+      return;
+    }
+
     if (isEdit) {
-      updateMutate({ id: Number(id), data: payload });
+      updateMutate({ id: numericId, data: payload });
       return;
     }
 
     createMutate({ data: payload });
   };
 
-  if (isEdit && loadingBiz) {
+  if (isEdit && loadingBiz && !isDemoSession) {
     return (
       <Layout>
         <div className="p-20 text-center">Cargando formulario del negocio...</div>
@@ -215,6 +250,13 @@ export default function BusinessForm() {
           </Button>
         </div>
 
+        {isDemoSession && (
+          <div className="mb-8 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-sm text-muted-foreground">
+            Este formulario esta en modo demo editable. Todo lo que guardes se conserva
+            en este navegador para que puedas probar crear, editar y borrar negocios.
+          </div>
+        )}
+
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="rounded-3xl border border-border bg-card p-6 shadow-sm md:p-8">
@@ -244,7 +286,7 @@ export default function BusinessForm() {
                       <SelectValue placeholder="Selecciona una categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories?.map((category) => (
+                      {visibleCategories.map((category) => (
                         <SelectItem key={category.id} value={String(category.id)}>
                           {category.name}
                         </SelectItem>
@@ -263,10 +305,10 @@ export default function BusinessForm() {
                   <Textarea
                     {...form.register("description")}
                     className="min-h-[120px] rounded-xl bg-muted/50"
-                    placeholder="Cuéntale al cliente qué te hace especial, qué vendes y por qué debería contactarte."
+                    placeholder="Cuentale al cliente que te hace especial, que vendes y por que deberia contactarte."
                   />
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Hazla clara, concreta y útil para quien te encuentra por primera vez.</span>
+                    <span>Hazla clara, concreta y util para quien te encuentra por primera vez.</span>
                     <span>{description.length}/400</span>
                   </div>
                 </div>
@@ -501,21 +543,21 @@ export default function BusinessForm() {
               </div>
               <div className="space-y-3 text-sm text-muted-foreground">
                 <p>1. Guardas o publicas tu ficha.</p>
-                <p>2. El equipo revisa la informacion si es una ficha nueva.</p>
-                <p>3. Tu negocio queda visible en el directorio.</p>
-                <p>4. Desde Premium puedes mostrar mas datos de contacto y ubicacion.</p>
+                <p>2. En demo, la informacion se actualiza al instante.</p>
+                <p>3. Tu negocio aparece en Mis Negocios y en el directorio.</p>
+                <p>4. Desde Premium puedes ensayar todo el flujo comercial antes del backend final.</p>
               </div>
             </div>
 
             <div className="rounded-3xl border border-primary/20 bg-primary/5 p-6 shadow-sm">
               <div className="mb-4 flex items-center gap-2 font-bold text-primary">
-                <Globe className="h-5 w-5" />
-                Consejo rapido
+                {isDemoSession ? <ShieldCheck className="h-5 w-5" /> : <Globe className="h-5 w-5" />}
+                {isDemoSession ? "Modo demo util" : "Consejo rapido"}
               </div>
               <p className="text-sm text-muted-foreground">
-                Si tu negocio depende mucho de visitas presenciales, prioriza direccion,
-                WhatsApp y horario. Son los tres datos que mas ayudan a convertir visitas
-                en contactos reales.
+                {isDemoSession
+                  ? "Prueba cambios reales con tus fichas: crea una, edita otra y luego vuelve al panel para revisar estados y detalle publico."
+                  : "Si tu negocio depende mucho de visitas presenciales, prioriza direccion, WhatsApp y horario. Son los tres datos que mas ayudan a convertir visitas en contactos reales."}
               </p>
             </div>
           </aside>

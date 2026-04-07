@@ -1,10 +1,21 @@
 import React, { useMemo } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useAuth } from "@/components/auth-provider";
 import { useGetBusinesses, useDeleteBusiness } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, AlertTriangle, Crown, Eye, PhoneCall } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  AlertTriangle,
+  Crown,
+  Eye,
+  PhoneCall,
+  Sparkles,
+  CheckCircle2,
+  ClipboardList,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -22,7 +33,7 @@ import {
   getBusinessFallbackImage,
   getBusinessImageSrc,
 } from "@/lib/business-media";
-import { fallbackBusinesses } from "@/lib/fallback-directory";
+import { useDemoBusinesses } from "@/lib/demo-businesses";
 
 function getStatusLabel(status: string) {
   if (status === "approved") return "Aprobado";
@@ -31,26 +42,18 @@ function getStatusLabel(status: string) {
 }
 
 export default function MyBusinesses() {
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
+  const { user, isDemoSession } = useAuth();
   const { toast } = useToast();
-
+  const { businesses: demoBusinesses, deleteBusiness: deleteDemoBusiness } = useDemoBusinesses();
   const { data, isLoading, refetch } = useGetBusinesses({ limit: 100 });
 
-  const isDemoPremium = user?.email === "premium@directoriocartago.co";
-  const demoBusinesses = useMemo(
-    () =>
-      fallbackBusinesses.slice(0, 2).map((business, index) => ({
-        ...business,
-        ownerId: user?.id || business.ownerId,
-        status: index === 0 ? ("approved" as const) : ("pending" as const),
-      })),
-    [user?.id],
-  );
-
-  const myBusinesses =
-    data?.businesses?.filter((business) => business.ownerId === user?.id) ||
-    (isDemoPremium ? demoBusinesses : []);
+  const isDemoPremium = isDemoSession && user?.email === "premium@directoriocartago.co";
+  const myBusinesses = useMemo(() => {
+    if (isDemoPremium) {
+      return demoBusinesses.filter((business) => business.ownerId === user?.id);
+    }
+    return data?.businesses?.filter((business) => business.ownerId === user?.id) || [];
+  }, [data?.businesses, demoBusinesses, isDemoPremium, user?.id]);
 
   const { mutate: deleteMutation } = useDeleteBusiness({
     mutation: {
@@ -79,6 +82,22 @@ export default function MyBusinesses() {
       </Layout>
     );
   }
+
+  const approvedCount = myBusinesses.filter((item) => item.status === "approved").length;
+  const pendingCount = myBusinesses.filter((item) => item.status === "pending").length;
+
+  const handleDelete = (id: number) => {
+    if (isDemoPremium) {
+      deleteDemoBusiness(id);
+      toast({
+        title: "Negocio eliminado",
+        description: "La ficha demo se elimino de este navegador.",
+      });
+      return;
+    }
+
+    deleteMutation({ id });
+  };
 
   return (
     <Layout>
@@ -112,15 +131,11 @@ export default function MyBusinesses() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
             <p className="text-sm text-muted-foreground">Negocios visibles</p>
-            <p className="mt-2 text-3xl font-display font-bold">
-              {myBusinesses.filter((item) => item.status === "approved").length}
-            </p>
+            <p className="mt-2 text-3xl font-display font-bold">{approvedCount}</p>
           </div>
           <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
             <p className="text-sm text-muted-foreground">En revision</p>
-            <p className="mt-2 text-3xl font-display font-bold">
-              {myBusinesses.filter((item) => item.status === "pending").length}
-            </p>
+            <p className="mt-2 text-3xl font-display font-bold">{pendingCount}</p>
           </div>
           <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
             <p className="text-sm text-muted-foreground">Nivel de cuenta</p>
@@ -131,13 +146,19 @@ export default function MyBusinesses() {
         </div>
 
         {isDemoPremium && (
-          <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
-            Estas viendo una experiencia demo de propietario Premium para explorar opciones
-            de gestion sin depender del backend.
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-sm text-muted-foreground">
+              Este modo demo ya es editable: puedes crear, editar y eliminar fichas desde
+              este navegador sin esperar a que responda el backend.
+            </div>
+            <div className="rounded-2xl border border-border bg-card px-4 py-4 text-sm text-muted-foreground">
+              Lo que guardes aqui tambien aparecera en el listado y en la ficha publica
+              del directorio mientras mantengas esta sesion demo.
+            </div>
           </div>
         )}
 
-        {isLoading ? (
+        {isLoading && !isDemoPremium ? (
           <div className="space-y-4">
             {[1, 2].map((i) => (
               <div key={i} className="h-32 animate-pulse rounded-2xl bg-muted" />
@@ -145,6 +166,7 @@ export default function MyBusinesses() {
           </div>
         ) : myBusinesses.length === 0 ? (
           <div className="rounded-3xl border border-border border-dashed bg-card py-20 text-center">
+            <ClipboardList className="mx-auto mb-4 h-12 w-12 text-primary/70" />
             <h3 className="mb-2 text-xl font-bold">Aun no tienes negocios publicados</h3>
             <p className="mb-6 text-muted-foreground">
               Crea tu primera ficha para empezar a aparecer en el directorio.
@@ -188,6 +210,12 @@ export default function MyBusinesses() {
                         Premium
                       </Badge>
                     )}
+                    {isDemoPremium && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        Demo editable
+                      </Badge>
+                    )}
                   </div>
 
                   <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
@@ -203,6 +231,12 @@ export default function MyBusinesses() {
                       <PhoneCall className="h-3.5 w-3.5 text-primary" />
                       {biz.phone || "Sin telefono visible"}
                     </span>
+                    {biz.status === "approved" ? (
+                      <span className="inline-flex items-center gap-2 text-emerald-600">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Visible en el directorio
+                      </span>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">
@@ -218,7 +252,6 @@ export default function MyBusinesses() {
                           variant="outline"
                           size="sm"
                           className="rounded-lg border-destructive/30 text-destructive hover:bg-destructive/10"
-                          disabled={isDemoPremium}
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                         </Button>
@@ -235,7 +268,7 @@ export default function MyBusinesses() {
                             Cancelar
                           </AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => deleteMutation({ id: biz.id })}
+                            onClick={() => handleDelete(biz.id)}
                             className="rounded-xl bg-destructive hover:bg-destructive/90"
                           >
                             Si, eliminar
