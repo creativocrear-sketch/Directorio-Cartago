@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Store, UserPlus } from "lucide-react";
+import { createLocalDemoAccount } from "@/lib/demo-auth";
+import { Store, UserPlus, Sparkles } from "lucide-react";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Escribe un nombre mas claro"),
@@ -39,6 +40,28 @@ export default function Register() {
     defaultValues: { role: "visitor" },
   });
 
+  const fallbackRegister = React.useCallback(
+    (data: RegisterFormValues) => {
+      const result = createLocalDemoAccount(data);
+      if (!result.ok) {
+        toast({
+          title: "Ese correo ya existe",
+          description: "Prueba con otro correo o entra desde la pantalla de login.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAuthContext(`demo-token:${result.account.user.email}`, result.account.user);
+      toast({
+        title: "Cuenta creada",
+        description: "La cuenta se creo en modo local y ya puedes usar la plataforma.",
+      });
+      setLocation(result.account.user.role === "business_owner" ? "/my-businesses" : "/");
+    },
+    [setAuthContext, setLocation, toast],
+  );
+
   const { mutate: registerMutation, isPending } = useRegister({
     mutation: {
       onSuccess: (data) => {
@@ -49,13 +72,8 @@ export default function Register() {
         });
         setLocation(data.user.role === "business_owner" ? "/my-businesses" : "/");
       },
-      onError: (error) => {
-        toast({
-          title: "No pudimos crear tu cuenta",
-          description:
-            error.response?.data?.message || "Intenta de nuevo con otros datos.",
-          variant: "destructive",
-        });
+      onError: (_error, variables) => {
+        fallbackRegister(variables.data);
       },
     },
   });
@@ -71,7 +89,7 @@ export default function Register() {
       <div className="min-h-[calc(100vh-4rem)] bg-muted/30 px-4 py-12">
         <div className="container mx-auto max-w-5xl">
           <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-[2rem] bg-card p-8 shadow-xl border border-border/60">
+            <div className="rounded-[2rem] border border-border/60 bg-card p-8 shadow-xl">
               <div className="mb-8">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
                   <UserPlus className="h-6 w-6" />
@@ -83,6 +101,10 @@ export default function Register() {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm text-muted-foreground">
+                  Si la API no responde, tu cuenta igual se crea en modo local para que puedas usar la app normalmente.
+                </div>
+
                 <div className="rounded-2xl border border-border bg-muted/40 p-4">
                   <Label className="mb-3 block text-base font-semibold">
                     Tipo de cuenta
@@ -227,6 +249,16 @@ export default function Register() {
                     Muestra imagenes, horarios, ubicacion y canales de contacto.
                   </p>
                 </div>
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <p className="font-semibold">Funciona aun sin backend</p>
+                  <p className="text-sm text-white/75">
+                    Puedes seguir probando la plataforma en modo local hasta dejar todo listo.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-8 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm">
+                <Sparkles className="h-4 w-4" />
+                Registro con respaldo local automatico
               </div>
             </div>
           </div>

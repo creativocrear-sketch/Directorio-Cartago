@@ -17,6 +17,7 @@ import {
   getFallbackBusinesses,
 } from "@/lib/fallback-directory";
 import { getBusinessImageSrc } from "@/lib/business-media";
+import { useDemoBusinesses } from "@/lib/demo-businesses";
 import type { Business } from "@workspace/api-client-react";
 
 type ChatMessage =
@@ -82,6 +83,25 @@ async function searchBusinesses(query: string) {
   return getFallbackBusinesses({ search: trimmed, limit: 4 }).businesses;
 }
 
+function searchLocalBusinesses(query: string, businesses: Business[]) {
+  const term = normalizeTerm(query);
+  if (!term) return [];
+
+  return businesses.filter((business) => {
+    const haystack = normalizeTerm(
+      [
+        business.name,
+        business.description,
+        business.categoryName,
+        business.address,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+    return haystack.includes(term);
+  });
+}
+
 export default function Chatbot() {
   const [open, setOpen] = React.useState(false);
   const [input, setInput] = React.useState("");
@@ -93,6 +113,7 @@ export default function Chatbot() {
       text: "Hola. Puedo ayudarte a encontrar negocios de Cartago por nombre, categoria o servicio.",
     },
   ]);
+  const { businesses: demoBusinesses } = useDemoBusinesses();
 
   const submitQuery = React.useCallback(
     async (rawQuery: string) => {
@@ -106,7 +127,12 @@ export default function Chatbot() {
       setInput("");
       setIsLoading(true);
 
-      const results = await searchBusinesses(query);
+      const localResults = searchLocalBusinesses(query, demoBusinesses).slice(0, 4);
+      const remoteResults = await searchBusinesses(query);
+      const results = [...localResults, ...remoteResults].filter(
+        (business, index, array) =>
+          array.findIndex((candidate) => candidate.id === business.id) === index,
+      ).slice(0, 4);
       const assistantText = createAssistantReply(query, results);
 
       setMessages((current) => {
@@ -123,7 +149,7 @@ export default function Chatbot() {
       });
       setIsLoading(false);
     },
-    [],
+    [demoBusinesses],
   );
 
   const popularBusinesses = React.useMemo(

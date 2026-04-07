@@ -3,13 +3,14 @@ import { Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Mail } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
 import { useForgotPassword } from "@workspace/api-client-react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { getPasswordRecoveryHint } from "@/lib/demo-auth";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Ingresa un correo valido"),
@@ -35,7 +36,16 @@ export default function ForgotPassword() {
           description: "Si el correo existe, recibiras instrucciones para recuperar el acceso.",
         });
       },
-      onError: () => {
+      onError: (_error, variables) => {
+        const hint = getPasswordRecoveryHint(variables.data.email);
+        if (hint) {
+          toast({
+            title: "Cuenta encontrada en modo local",
+            description: hint,
+          });
+          return;
+        }
+
         toast({
           title: "No pudimos enviarlo",
           description: "Intenta de nuevo en unos minutos.",
@@ -63,6 +73,10 @@ export default function ForgotPassword() {
             </p>
           </div>
 
+          <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+            Si estas usando una cuenta local o demo, te mostraremos una orientacion directa en lugar de enviar correo.
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Correo electronico</Label>
@@ -82,6 +96,19 @@ export default function ForgotPassword() {
               {isPending ? "Enviando..." : "Enviar instrucciones"}
             </Button>
           </form>
+
+          <div className="mt-6 rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+            <div className="mb-2 flex items-center gap-2 font-medium text-foreground">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Atajo demo
+            </div>
+            <p>
+              Admin demo: <span className="font-medium">admin@directoriocartago.co</span>
+            </p>
+            <p>
+              Premium demo: <span className="font-medium">premium@directoriocartago.co</span>
+            </p>
+          </div>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             <Link href="/login" className="font-semibold text-primary hover:underline">

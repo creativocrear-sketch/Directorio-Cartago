@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, User } from "lucide-react";
+import { updateLocalDemoUser } from "@/lib/demo-auth";
+import { Shield, User, Sparkles } from "lucide-react";
 
 function formatRole(role?: string) {
   if (role === "business_owner") return "Negocio";
@@ -15,11 +16,16 @@ function formatRole(role?: string) {
 }
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, isDemoSession, updateUser } = useAuth();
   const { toast } = useToast();
 
   const [name, setName] = React.useState(user?.name || "");
   const [phone, setPhone] = React.useState(user?.phone || "");
+
+  React.useEffect(() => {
+    setName(user?.name || "");
+    setPhone(user?.phone || "");
+  }, [user?.name, user?.phone]);
 
   const { mutate, isPending } = useUpdateProfile({
     mutation: {
@@ -41,6 +47,23 @@ export default function Profile() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (!user) return;
+
+    if (isDemoSession) {
+      const nextUser = {
+        ...user,
+        name: name.trim() || user.name,
+        phone: phone.trim() || null,
+      };
+      updateUser(nextUser);
+      updateLocalDemoUser(nextUser);
+      toast({
+        title: "Perfil actualizado",
+        description: "Tus cambios demo quedaron guardados en este navegador.",
+      });
+      return;
+    }
+
     mutate({ data: { name, phone } });
   };
 
@@ -61,6 +84,12 @@ export default function Profile() {
 
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[2rem] border border-border bg-card p-8 shadow-sm">
+            {isDemoSession && (
+              <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+                Este perfil esta en modo demo. Los cambios se guardan al instante en este navegador.
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre completo</Label>
@@ -103,6 +132,17 @@ export default function Profile() {
                   Premium activo
                 </div>
               )}
+            </div>
+
+            <div className="rounded-[2rem] border border-primary/20 bg-primary/5 p-6 text-foreground shadow-sm">
+              <div className="mb-3 flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <h2 className="font-semibold">Experiencia funcional</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Tu cuenta puede manejar perfil, negocios y suscripcion demo sin depender
+                del backend. Eso te deja probar toda la experiencia de forma continua.
+              </p>
             </div>
 
             <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6 text-amber-900 shadow-sm">

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { validateDemoCredentials } from "@/lib/demo-auth";
 import { MapPin, ShieldCheck } from "lucide-react";
 
 const loginSchema = z.object({
@@ -59,6 +60,17 @@ export default function Login() {
 
   const onSubmit = (data: LoginFormValues) => {
     const normalizedEmail = data.email.trim().toLowerCase();
+    const localUser = validateDemoCredentials(normalizedEmail, data.password);
+
+    if (localUser) {
+      setAuthContext(`demo-token:${localUser.email}`, localUser);
+      toast({
+        title: "Sesion iniciada",
+        description: "Entraste con una cuenta disponible en este navegador.",
+      });
+      setLocation(localUser.role === "admin" ? "/admin" : localUser.role === "business_owner" ? "/my-businesses" : "/");
+      return;
+    }
 
     if (
       normalizedEmail === DEMO_ADMIN_USER.email &&

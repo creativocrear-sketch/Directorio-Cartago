@@ -4,7 +4,8 @@ import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useGetSubscriptionPlans, useSubscribe } from "@workspace/api-client-react";
-import { AlertCircle, Check, Crown, MapPinned, PhoneCall, Rocket } from "lucide-react";
+import { updateLocalDemoUser } from "@/lib/demo-auth";
+import { AlertCircle, Check, Crown, MapPinned, PhoneCall, Rocket, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const freeFeatures = [
@@ -43,7 +44,7 @@ const fallbackPlans = [
 ];
 
 export default function Plans() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isDemoSession, updateUser } = useAuth();
   const { toast } = useToast();
   const { data: plans, isLoading } = useGetSubscriptionPlans();
 
@@ -72,10 +73,21 @@ export default function Plans() {
   });
 
   const handleSubscribe = (planId: number) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       toast({
         title: "Inicia sesion",
         description: "Debes iniciar sesion para activar un plan.",
+      });
+      return;
+    }
+
+    if (isDemoSession) {
+      const nextUser = { ...user, hasActiveSubscription: true };
+      updateUser(nextUser);
+      updateLocalDemoUser(nextUser);
+      toast({
+        title: "Premium activado",
+        description: "Tu cuenta local ya desbloqueo las funciones Premium.",
       });
       return;
     }
@@ -115,6 +127,13 @@ export default function Plans() {
               aprovechando todos sus beneficios.
             </AlertDescription>
           </Alert>
+        )}
+
+        {isDemoSession && !user?.hasActiveSubscription && (
+          <div className="mx-auto mb-10 max-w-3xl rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-sm text-muted-foreground">
+            En modo local puedes activar Premium de inmediato para desbloquear telefonos,
+            WhatsApp, mapas y una experiencia mas completa de prueba.
+          </div>
         )}
 
         <div className="mb-10 grid gap-4 md:grid-cols-3">
@@ -214,6 +233,16 @@ export default function Plans() {
                     </li>
                   ))}
                 </ul>
+
+                {isDemoSession ? (
+                  <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+                    <div className="mb-2 flex items-center gap-2 font-medium text-foreground">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Activacion inmediata
+                    </div>
+                    Este plan se activa localmente para que pruebes toda la experiencia Premium.
+                  </div>
+                ) : null}
 
                 <Button
                   onClick={() => handleSubscribe(plan.id)}

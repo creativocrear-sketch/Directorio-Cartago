@@ -32,6 +32,7 @@ interface AuthContextType {
   isDemoSession: boolean;
   token: string | null;
   login: (token: string, user: User) => void;
+  updateUser: (user: User) => void;
   logout: () => void;
 }
 
@@ -90,6 +91,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.clear();
   };
 
+  const updateUser = (nextUser: User) => {
+    if (isDemoSession) {
+      localStorage.setItem(DEMO_USER_KEY, JSON.stringify(nextUser));
+      setDemoUser(nextUser);
+    }
+    queryClient.setQueryData([`/api/auth/me`], nextUser);
+  };
+
   const user = useMemo(() => {
     if (isDemoSession) {
       return demoUser;
@@ -106,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isDemoSession,
         token,
         login,
+        updateUser,
         logout,
       }}
     >
