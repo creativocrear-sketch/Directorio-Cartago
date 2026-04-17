@@ -19,6 +19,7 @@ import AdminPanel from "./pages/admin-panel";
 import Plans from "./pages/plans";
 import Privacy from "./pages/privacy";
 import Terms from "./pages/terms";
+import { RadioPage } from "./pages/radio";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/plans" component={Plans} />
       <Route path="/privacidad" component={Privacy} />
       <Route path="/terminos" component={Terms} />
+      <Route path="/radio" component={RadioPage} />
 
       <Route component={NotFound} />
     </Switch>
