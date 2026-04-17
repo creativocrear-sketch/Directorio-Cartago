@@ -21,7 +21,7 @@ const radioStations: RadioStation[] = [
     id: "1",
     name: "Cartago Stereo",
     frequency: "89.0 FM",
-    streamUrl: "https://tunein.com/embed/player/s243337/",
+    streamUrl: "https://radios.com.co/tropicana-bogota/",
     city: "Cartago",
     genre: "Variada",
     useIframe: true,
@@ -30,7 +30,7 @@ const radioStations: RadioStation[] = [
     id: "2",
     name: "Tropicana Bogotá",
     frequency: "102.9 FM",
-    streamUrl: "https://tunein.com/embed/player/s16487/",
+    streamUrl: "https://radios.com.co/tropicana-bogota/",
     city: "Bogotá",
     genre: "Salsa",
     useIframe: true,
@@ -39,16 +39,15 @@ const radioStations: RadioStation[] = [
     id: "3",
     name: "Caracol Radio",
     frequency: "100.9 FM",
-    streamUrl: "https://tunein.com/embed/player/s16182/",
+    streamUrl: "http://14623.live.streamtheworld.com/CARACOL_RADIO_SC",
     city: "Bogotá",
     genre: "Noticias",
-    useIframe: true,
   },
   {
     id: "4",
-    name: "W Radio",
+    name: "La W Radio",
     frequency: "99.4 FM",
-    streamUrl: "https://tunein.com/embed/player/s309390/",
+    streamUrl: "https://radios.com.co/w-bogota/",
     city: "Bogotá",
     genre: "Noticias",
     useIframe: true,
@@ -172,7 +171,6 @@ export function RadioPage() {
                 frameBorder="0"
                 allow="autoplay; encrypted-media"
                 allowFullScreen
-                autoPlay
               />
             </div>
           ) : (
