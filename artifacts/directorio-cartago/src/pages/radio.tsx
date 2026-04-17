@@ -21,19 +21,17 @@ const radioStations: RadioStation[] = [
     id: "1",
     name: "Cartago Stereo",
     frequency: "89.0 FM",
-    streamUrl: "https://radios.com.co/tropicana-bogota/",
+    streamUrl: "http://14623.live.streamtheworld.com/CARACOL_RADIO_SC",
     city: "Cartago",
     genre: "Variada",
-    useIframe: true,
   },
   {
     id: "2",
     name: "Tropicana Bogotá",
     frequency: "102.9 FM",
-    streamUrl: "https://radios.com.co/tropicana-bogota/",
+    streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/MEGA.mp3",
     city: "Bogotá",
     genre: "Salsa",
-    useIframe: true,
   },
   {
     id: "3",
@@ -47,10 +45,9 @@ const radioStations: RadioStation[] = [
     id: "4",
     name: "La W Radio",
     frequency: "99.4 FM",
-    streamUrl: "https://radios.com.co/w-bogota/",
+    streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/MEGA.mp3",
     city: "Bogotá",
     genre: "Noticias",
-    useIframe: true,
   },
 ];
 
@@ -163,50 +160,54 @@ export function RadioPage() {
             <p className="text-sm text-muted-foreground">{selectedStation.frequency} • {selectedStation.city}</p>
           </div>
 
-          {selectedStation.useIframe ? (
-            <div className="rounded-lg overflow-hidden border border-border bg-white">
-              <iframe
-                src={selectedStation.streamUrl}
-                className="w-full h-[400px]"
-                frameBorder="0"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-              />
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-6">
-              <audio
-                ref={audioRef}
-                src={usingAlternative && selectedStation?.alternativeStreamUrl ? selectedStation.alternativeStreamUrl : selectedStation.streamUrl}
-                autoPlay={isPlaying}
-                onPlay={() => {
-                  setIsPlaying(true);
-                  setIsLoading(false);
-                }}
-                onPause={() => {
-                  setIsPlaying(false);
-                  setIsLoading(false);
-                }}
-                onError={handleAudioError}
-                onLoadedData={handleAudioLoad}
-                className="w-full"
-              />
+          <div className="flex flex-col items-center gap-8">
+            <audio
+              ref={audioRef}
+              src={usingAlternative && selectedStation?.alternativeStreamUrl ? selectedStation.alternativeStreamUrl : selectedStation.streamUrl}
+              autoPlay={isPlaying}
+              onPlay={() => {
+                setIsPlaying(true);
+                setIsLoading(false);
+              }}
+              onPause={() => {
+                setIsPlaying(false);
+                setIsLoading(false);
+              }}
+              onError={handleAudioError}
+              onLoadedData={handleAudioLoad}
+              className="hidden"
+            />
+            
+            <div className="flex items-center gap-4">
               <Button
                 size="lg"
                 onClick={isPlaying ? handlePause : () => handlePlay(selectedStation)}
                 disabled={isLoading}
-                className="h-14 w-14 rounded-full bg-primary text-white"
+                className="h-16 w-16 rounded-full bg-primary text-white"
               >
                 {isLoading ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-4 border-white border-t-transparent" />
+                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-white border-t-transparent" />
                 ) : isPlaying ? (
-                  <Pause className="h-6 w-6" />
+                  <Pause className="h-8 w-8" />
                 ) : (
-                  <Play className="h-6 w-6 ml-0.5" />
+                  <Play className="h-8 w-8 ml-1" />
                 )}
               </Button>
+              
+              <div className="flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-muted-foreground" />
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="w-32 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
             </div>
-          )}
+          </div>
 
           {/* Station Selector */}
           <div className="mt-8">
