@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "./auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Menu, User, LogOut, LayoutDashboard, Crown, Briefcase, Sparkles } from "lucide-react";
+import { MapPin, Search, Menu, User, LogOut, LayoutDashboard, Crown, Briefcase, Sparkles, Radio } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +34,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <>
       <Link href="/businesses" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
         Directorio
+      </Link>
+      <Link href="/radio" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-1.5">
+        <Radio className="h-4 w-4" />
+        Radio
       </Link>
       <Link href="/plans" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
         Planes
