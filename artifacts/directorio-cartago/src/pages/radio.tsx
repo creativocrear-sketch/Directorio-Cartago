@@ -168,7 +168,7 @@ export function RadioPage() {
             <div className="rounded-lg overflow-hidden border border-border bg-white">
               <iframe
                 src={selectedStation.streamUrl}
-                className="w-full h-[500px]"
+                className="w-full h-[300px]"
                 frameBorder="0"
                 allow="autoplay; encrypted-media"
                 allowFullScreen
