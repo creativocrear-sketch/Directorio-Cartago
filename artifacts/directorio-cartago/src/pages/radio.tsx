@@ -28,6 +28,15 @@ const radioStations: RadioStation[] = [
   },
   {
     id: "2",
+    name: "Tropicana Bogotá",
+    frequency: "102.9 FM",
+    streamUrl: "https://mytuner-radio.com/radio/tropicana-bogota-403873/",
+    city: "Bogotá",
+    genre: "Salsa",
+    useIframe: true,
+  },
+  {
+    id: "3",
     name: "Radio Cartago",
     frequency: "107.9 FM",
     streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/MEGA.mp3",
