@@ -26,6 +26,32 @@ const radioStations: RadioStation[] = [
     genre: "Variada",
     useIframe: true,
   },
+  {
+    id: "2",
+    name: "Radio Cartago",
+    frequency: "107.9 FM",
+    streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/MEGA.mp3",
+    city: "Cartago",
+    genre: "Pop",
+  },
+  {
+    id: "3",
+    name: "Tropicana Bogotá",
+    frequency: "102.9 FM",
+    streamUrl: "http://e.emisorascolombianas.co/embed/tropicana-bogota",
+    city: "Bogotá",
+    genre: "Salsa",
+    useIframe: true,
+  },
+  {
+    id: "4",
+    name: "Caracol Radio",
+    frequency: "100.9 FM",
+    streamUrl: "http://e.emisorascolombianas.co/embed/caracol-radio",
+    city: "Bogotá",
+    genre: "Noticias",
+    useIframe: true,
+  },
 ];
 
 export function RadioPage() {
@@ -137,15 +163,50 @@ export function RadioPage() {
             <p className="text-sm text-muted-foreground">{selectedStation.frequency} • {selectedStation.city}</p>
           </div>
 
-          <div className="rounded-lg overflow-hidden border border-border bg-white">
-            <iframe
-              src={selectedStation.streamUrl}
-              className="w-full h-[500px]"
-              frameBorder="0"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-            />
-          </div>
+          {selectedStation.useIframe ? (
+            <div className="rounded-lg overflow-hidden border border-border bg-white">
+              <iframe
+                src={selectedStation.streamUrl}
+                className="w-full h-[500px]"
+                frameBorder="0"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-6">
+              <audio
+                ref={audioRef}
+                src={usingAlternative && selectedStation?.alternativeStreamUrl ? selectedStation.alternativeStreamUrl : selectedStation.streamUrl}
+                autoPlay={isPlaying}
+                onPlay={() => {
+                  setIsPlaying(true);
+                  setIsLoading(false);
+                }}
+                onPause={() => {
+                  setIsPlaying(false);
+                  setIsLoading(false);
+                }}
+                onError={handleAudioError}
+                onLoadedData={handleAudioLoad}
+                className="w-full"
+              />
+              <Button
+                size="lg"
+                onClick={isPlaying ? handlePause : () => handlePlay(selectedStation)}
+                disabled={isLoading}
+                className="h-16 w-16 rounded-full bg-primary text-white"
+              >
+                {isLoading ? (
+                  <div className="h-6 w-6 animate-spin rounded-full border-4 border-white border-t-transparent" />
+                ) : isPlaying ? (
+                  <Pause className="h-8 w-8" />
+                ) : (
+                  <Play className="h-8 w-8 ml-1" />
+                )}
+              </Button>
+            </div>
+          )}
 
           {/* Station Selector */}
           <div className="mt-8">
